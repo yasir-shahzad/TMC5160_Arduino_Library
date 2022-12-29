@@ -42,7 +42,7 @@ SOFTWARE.
 */
 
 #include <Arduino.h>
-#include <TMC5160.h>
+#include "src/TMC5160.h"
 
 const uint8_t SPI_CS = SS;       // CS pin in SPI mode
 const uint8_t SPI_DRV_ENN = 6;  // DRV_ENN pin in SPI mode
