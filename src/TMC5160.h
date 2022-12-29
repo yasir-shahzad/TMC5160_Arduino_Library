@@ -28,7 +28,7 @@ SOFTWARE.
 
 #include <Arduino.h>
 #include <SPI.h>
-#include <TMC5160_registers.h>
+#include "TMC5160_registers.h"
 
 class TMC5160 {
 public:
