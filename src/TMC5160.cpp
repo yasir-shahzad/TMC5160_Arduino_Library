@@ -65,14 +65,14 @@ bool TMC5160::begin(const PowerStageParameters &powerParams, const MotorParamete
 	// Set initial PWM values
 	TMC5160_Reg::PWMCONF_Register pwmconf = { 0 };
 	pwmconf.value = 0xC40C001E; //Reset default
-	pwmconf.pwm_autoscale = false; //Temp to set OFS and GRAD initial values
+	pwmconf.pwm_autoscale = true; //Temp to set OFS and GRAD initial values
 	if (_fclk > DEFAULT_F_CLK)
 		pwmconf.pwm_freq = 0;
 	else
-		pwmconf.pwm_freq = 0b01; // recommended : 35kHz with internal typ. 12MHZ clock. 0b01 => 2/683 * f_clk
+		pwmconf.pwm_freq = 0b10; // recommended : 32.1kHz with internal typ. 12MHZ clock. 0b01 => 2/683 * f_clk
 	pwmconf.pwm_grad = motorParams.pwmGradInitial;
-	pwmconf.pwm_ofs = motorParams.pwmOfsInitial;
-	pwmconf.freewheel = motorParams.freewheeling;
+	pwmconf.pwm_ofs = motorParams.pwmOfsInitial;  // first 8bits of pwm config 255
+	pwmconf.freewheel = motorParams.freewheeling;  // 8-16bits value is 1
 	writeRegister(TMC5160_Reg::PWMCONF, pwmconf.value);
 
 	pwmconf.pwm_autoscale = true;

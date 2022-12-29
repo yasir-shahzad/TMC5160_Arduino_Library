@@ -38,22 +38,22 @@ public:
 	enum MotorDirection { NORMAL_MOTOR_DIRECTION =	0x00, INVERSE_MOTOR_DIRECTION = 0x1 };
 	enum RampMode { POSITIONING_MODE, VELOCITY_MODE, HOLD_MODE };
 
-	enum DriverStatus { 
-		OK, // No error condition
+	enum DriverStatus {
+		OK,    // No error condition
 		CP_UV, // Charge pump undervoltage
 		S2VSA, // Short to supply phase A
 		S2VSB, // Short to supply phase B
 		S2GA, // Short to ground phase A
 		S2GB, // Short to ground phase B
-		OT, // Overtemperature (error)
+		OT,   // Overtemperature (error)
 		OTHER_ERR, // GSTAT drv_err is set but none of the above conditions is found.
-		OTPW // Overtemperature pre warning
+		OTPW  // Overtemperature pre warning
 	};
 
 	struct PowerStageParameters {
 		uint8_t drvStrength = 2; // MOSFET gate driver current (0 to 3)
-		uint8_t bbmTime = 0; // "Break Before Make" duration specified in ns (0 to 24)
-		uint8_t bbmClks = 4; // "Break Before Make" duration specified in clock cycles (0 to 15).
+		uint8_t bbmTime = 0;     // "Break Before Make" duration specified in ns (0 to 24)
+		uint8_t bbmClks = 4;     // "Break Before Make" duration specified in clock cycles (0 to 15).
 	};
 
 	struct MotorParameters {
@@ -61,8 +61,8 @@ public:
 		uint8_t irun = 16; // motor run current (0 to 31). For best performance don't set lower than 16
 		uint8_t ihold = 0; // standstill current (0 to 31). Set 70% of irun or lower.
 		TMC5160_Reg::PWMCONF_freewheel_Values freewheeling = TMC5160_Reg::FREEWHEEL_NORMAL; // Freewheeling / passive braking of ihold = 0
-		uint8_t pwmOfsInitial = 30; // initial stealthChop PWM amplitude offset (0-255)
-		uint8_t pwmGradInitial = 0; // initial stealthChop velocity dependent gradient for PWM amplitude
+		uint8_t pwmOfsInitial = 255; // initial stealthChop PWM amplitude offset (0-255)
+		uint8_t pwmGradInitial = 1; // initial stealthChop velocity dependent gradient for PWM amplitude
 	};
 
 	TMC5160(uint32_t fclk = DEFAULT_F_CLK);
