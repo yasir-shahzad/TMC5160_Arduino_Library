@@ -39,8 +39,9 @@ TMC5160::~TMC5160()
 
 bool TMC5160::begin(const PowerStageParameters &powerParams, const MotorParameters &motorParams, MotorDirection stepperDirection )
 {
-	/* Clear the reset and charge pump undervoltage flags */
-	TMC5160_Reg::GSTAT_Register gstat = { 0 };
+    bool retVal = false;
+    /* Clear the reset and charge pump undervoltage flags */
+    TMC5160_Reg::GSTAT_Register gstat = { 0 };
 	gstat.reset = true;
 	gstat.uv_cp = true;
 	writeRegister(TMC5160_Reg::GSTAT, gstat.value);
@@ -52,6 +53,10 @@ bool TMC5160::begin(const PowerStageParameters &powerParams, const MotorParamete
 	writeRegister(TMC5160_Reg::DRV_CONF, drvConf.value);
 
 	writeRegister(TMC5160_Reg::GLOBAL_SCALER, constrain(motorParams.globalScaler, 32, 256));
+	Serial.print(constrain(motorParams.globalScaler, 32, 256), BIN);
+    Serial.print(" GLOBAL_SCALER ");
+    uint32_t regValue4 = readRegister(TMC5160_Reg::GLOBAL_SCALER);
+    Serial.println(regValue4, BIN);
 
 	// set initial currents and delay
 	TMC5160_Reg::IHOLD_IRUN_Register iholdrun = { 0 };
@@ -59,6 +64,12 @@ bool TMC5160::begin(const PowerStageParameters &powerParams, const MotorParamete
 	iholdrun.irun = constrain(motorParams.irun, 0, 31);
 	iholdrun.iholddelay = 7;
 	writeRegister(TMC5160_Reg::IHOLD_IRUN, iholdrun.value);
+
+	Serial.print(iholdrun.value, BIN);
+    Serial.print(" IHOLD_IRUN ");
+    uint32_t regValue3 = readRegister(TMC5160_Reg::IHOLD_IRUN);
+    Serial.println(regValue3, BIN);
+
 
 	// TODO set short detection / overcurrent protection levels
 
@@ -73,19 +84,28 @@ bool TMC5160::begin(const PowerStageParameters &powerParams, const MotorParamete
 	pwmconf.pwm_grad = motorParams.pwmGradInitial;
 	pwmconf.pwm_ofs = motorParams.pwmOfsInitial;  // first 8bits of pwm config 255
 	pwmconf.freewheel = motorParams.freewheeling;  // 8-16bits value is 1
-	writeRegister(TMC5160_Reg::PWMCONF, pwmconf.value);
+    
+    writeRegister(TMC5160_Reg::PWMCONF, pwmconf.value);
 
-	pwmconf.pwm_autoscale = true;
+    pwmconf.pwm_autoscale = true;
 	pwmconf.pwm_autograd = true;
 	writeRegister(TMC5160_Reg::PWMCONF, pwmconf.value);
 
-	// Recommended settings in quick config guide
+    Serial.print(pwmconf.value, BIN);
+    Serial.print(" PWMCONF ");
+    uint32_t regValue = readRegister(TMC5160_Reg::PWMCONF);
+    Serial.println(regValue, BIN);
+
+    // Recommended settings in quick config guide
 	_chopConf.toff = 5;
 	_chopConf.tbl = 2;
 	_chopConf.hstrt_tfd = 4;
 	_chopConf.hend_offset = 0;
 	writeRegister(TMC5160_Reg::CHOPCONF, _chopConf.value);
-
+    Serial.print(_chopConf.value, BIN);
+    Serial.print(" CHOPCONF ");
+    uint32_t regValue1 = readRegister(TMC5160_Reg::CHOPCONF);
+    Serial.println(regValue1, BIN);
 	// use position mode
 	setRampMode(POSITIONING_MODE);
 
@@ -93,11 +113,18 @@ bool TMC5160::begin(const PowerStageParameters &powerParams, const MotorParamete
 	gconf.en_pwm_mode = true; //Enable stealthChop PWM mode
 	gconf.shaft = stepperDirection;
 	writeRegister(TMC5160_Reg::GCONF, gconf.value);
+	Serial.print(gconf.value, BIN);
+    Serial.print(" GCONF ");
+    uint32_t regValue2 = readRegister(TMC5160_Reg::GCONF);
+    Serial.println(regValue2, BIN);
+	if(gconf.value == readRegister(TMC5160_Reg::GCONF)){
+        retVal = true;
+    }
 
-	//Set default start, stop, threshold speeds.
+    //Set default start, stop, threshold speeds.
 	setRampSpeeds(0, 0.1, 0); //Start, stop, threshold speeds */
 
-	return false;
+	return (retVal);
 }
 
 void TMC5160::end()
