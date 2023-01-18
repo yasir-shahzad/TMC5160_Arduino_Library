@@ -45,7 +45,7 @@ SOFTWARE.
 #include "src/TMC5160.h"
 
 const uint8_t SPI_CS = SS;       // CS pin in SPI mode
-const uint8_t SPI_DRV_ENN = 6;  // DRV_ENN pin in SPI mode
+const uint8_t SPI_DRV_ENN = 9;  // DRV_ENN pin in SPI mode
 
 TMC5160_SPI motor = TMC5160_SPI(SPI_CS); //Use default SPI peripheral and SPI settings.
 unsigned long t_dirchange = 0;
@@ -66,8 +66,8 @@ void setup()
     // This sets the motor & driver parameters /!\ run the configWizard for your driver and motor for fine tuning !
     TMC5160::PowerStageParameters powerStageParams; // defaults.
     TMC5160::MotorParameters motorParams;
-    motorParams.globalScaler = 190; // Adapt to your driver and motor ("Selecting sense resistors")
-    motorParams.irun = 25;
+    motorParams.globalScaler = 96; // Adapt to your driver and motor ("Selecting sense resistors")
+    motorParams.irun = 15;
     motorParams.ihold = 5;
 
     SPI.begin();
@@ -75,11 +75,10 @@ void setup()
 
     Serial.println("TMC5160 not detected, Please check the wiring diagram");
     }
-       
 
     // ramp definition
     motor.setRampMode(TMC5160::VELOCITY_MODE);
-    motor.setMaxSpeed(-200);   // tics/sec  1rpm
+    motor.setMaxSpeed(-266);   // tics/sec  1rpm
     motor.setAcceleration(500);
 
     //motor.writeRegister(TMC5160_Reg::TPWMTHRS, 0);
@@ -92,36 +91,7 @@ void setup()
 
 void loop()
 {
-  uint32_t now = millis();
-
-  static bool dir;
-
-  // every n seconds or so...
-  if ( now - t_dirchange > 2000 )
-  {
-    t_dirchange = now;
-
-    // reverse direction
-    dir = !dir;
-    
-    // motor.setMaxSpeed(-400);
-  //  motor.setTargetPosition(dir ? 4000 : 0);  // 1 full rotation = 200s/rev
-  }
-
-  // print out current position
-  if( now - t_echo > 100 )
-  {
-   // int drvStauts = motor.getDriverStatus();
-  //  Serial.println("driverstatus: " + String(drvStauts));
-
-    t_echo = now;
-
-    // get the current target position
-    //float xactual = motor.getCurrentPosition();
-   // float vactual = motor.getCurrentSpeed();
-  //  Serial.print("current position : ");
-  //  Serial.println(xactual);
-   // Serial.print("\tcurrent speed : ");
-   // Serial.println(vactual);
-  }
+    int a = motor.getDriverStatus();
+    const char* myString = motor.getDriverStatusDescription(a);
+    Serial.println(myString);
 }
