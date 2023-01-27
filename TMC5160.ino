@@ -45,15 +45,14 @@ SOFTWARE.
 #include "src/TMC5160.h"
 
 const uint8_t SPI_CS = SS;       // CS pin in SPI mode
-const uint8_t SPI_DRV_ENN = 9;  // DRV_ENN pin in SPI mode
+const uint8_t SPI_DRV_ENN = 6;  // DRV_ENN pin in SPI mode
 
 TMC5160_SPI motor = TMC5160_SPI(SPI_CS); //Use default SPI peripheral and SPI settings.
-unsigned long t_dirchange = 0;
-unsigned long t_echo;
+
 
 void setup()
 {
-    delay(3000);
+   // delay(3000);
     // USB/debug serial coms
     Serial.begin(115200);
     Serial.print("CS:");
@@ -66,9 +65,9 @@ void setup()
     // This sets the motor & driver parameters /!\ run the configWizard for your driver and motor for fine tuning !
     TMC5160::PowerStageParameters powerStageParams; // defaults.
     TMC5160::MotorParameters motorParams;
-    motorParams.globalScaler = 96; // Adapt to your driver and motor ("Selecting sense resistors")
-    motorParams.irun = 15;
-    motorParams.ihold = 5;
+    motorParams.globalScaler = 90; // Adapt to your driver and motor ("Selecting sense resistors")
+    motorParams.irun = 25;
+    motorParams.ihold = 1;
 
     SPI.begin();
     if(!motor.begin(powerStageParams, motorParams, TMC5160::NORMAL_MOTOR_DIRECTION)){
@@ -78,8 +77,8 @@ void setup()
 
     // ramp definition
     motor.setRampMode(TMC5160::VELOCITY_MODE);
-    motor.setMaxSpeed(-266);   // tics/sec  1rpm
-    motor.setAcceleration(500);
+    motor.setMaxSpeed(0);   // tics/sec  1rpm
+    motor.setAcceleration(120);
 
     //motor.writeRegister(TMC5160_Reg::TPWMTHRS, 0);
    //motor.setModeChangeSpeeds(100, 10, 10);
@@ -91,6 +90,20 @@ void setup()
 
 void loop()
 {
+
+   motor.setMaxSpeed(-133);   // tics/sec  1rpm
+if(motor.isIcRest()) {
+     TMC5160::PowerStageParameters powerStageParams; // defaults.
+    TMC5160::MotorParameters motorParams;
+    motorParams.globalScaler = 90; // Adapt to your driver and motor ("Selecting sense resistors")
+    motorParams.irun = 25;
+    motorParams.ihold = 1;
+    motor.begin(powerStageParams, motorParams, TMC5160::NORMAL_MOTOR_DIRECTION);
+        // ramp definition
+    motor.setRampMode(TMC5160::VELOCITY_MODE);
+    motor.setMaxSpeed(0);   // tics/sec  1rpm
+    motor.setAcceleration(120);
+}
     int a = motor.getDriverStatus();
     const char* myString = motor.getDriverStatusDescription(a);
     Serial.println(myString);

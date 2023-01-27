@@ -122,9 +122,9 @@ public:
 	void enable(); //Enable the driver
 
 	//TODO chopper config functions ?
-
-	DriverStatus getDriverStatus(); // Get the current driver status (OK / error conditions)
-	static const char* getDriverStatusDescription(DriverStatus st); // Get a human readable description of the given driver status 
+    bool isIcRest();
+    DriverStatus getDriverStatus(); // Get the current driver status (OK / error conditions)
+    static const char* getDriverStatusDescription(DriverStatus st); // Get a human readable description of the given driver status 
 
 	/* Set the speeds (in steps/second) at which the internal functions and modes will be turned on or off.
 	 * Below pwmThrs, "stealthChop" PWM mode is used.

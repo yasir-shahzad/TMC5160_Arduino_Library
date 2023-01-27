@@ -46,7 +46,7 @@ bool TMC5160::begin(const PowerStageParameters &powerParams, const MotorParamete
 	gstat.uv_cp = true;
 	writeRegister(TMC5160_Reg::GSTAT, gstat.value);
 
-	TMC5160_Reg::DRV_CONF_Register drvConf = { 0 };
+    TMC5160_Reg::DRV_CONF_Register drvConf = { 0 };
 	drvConf.drvstrength = constrain(powerParams.drvStrength, 0, 3);
 	drvConf.bbmtime = constrain(powerParams.bbmTime, 0, 24);
 	drvConf.bbmclks = constrain(powerParams.bbmClks, 0, 15);
@@ -58,7 +58,7 @@ bool TMC5160::begin(const PowerStageParameters &powerParams, const MotorParamete
 	TMC5160_Reg::IHOLD_IRUN_Register iholdrun = { 0 };
 	iholdrun.ihold = constrain(motorParams.ihold, 0, 31);
 	iholdrun.irun = constrain(motorParams.irun, 0, 31);
-	iholdrun.iholddelay = 7;
+	iholdrun.iholddelay = 10;
 	writeRegister(TMC5160_Reg::IHOLD_IRUN, iholdrun.value);
 
 	// TODO set short detection / overcurrent protection levels
@@ -66,7 +66,7 @@ bool TMC5160::begin(const PowerStageParameters &powerParams, const MotorParamete
 	// Set initial PWM values
 	TMC5160_Reg::PWMCONF_Register pwmconf = { 0 };
 	pwmconf.value = 0xC40C001E; //Reset default
-	pwmconf.pwm_autoscale = false; //Temp to set OFS and GRAD initial values
+	pwmconf.pwm_autoscale = true; //Temp to set OFS and GRAD initial values
 	if (_fclk > DEFAULT_F_CLK)
 		pwmconf.pwm_freq = 0;
 	else
@@ -81,18 +81,19 @@ bool TMC5160::begin(const PowerStageParameters &powerParams, const MotorParamete
 	writeRegister(TMC5160_Reg::PWMCONF, pwmconf.value);
 
 	// Recommended settings in quick config guide
-	_chopConf.toff = 5;
-	_chopConf.tbl = 2;
-	_chopConf.hstrt_tfd = 4;
-	_chopConf.hend_offset = 0;
-	writeRegister(TMC5160_Reg::CHOPCONF, _chopConf.value);
+	   _chopConf.toff = 8;
+	   _chopConf.tbl = 1;
+	  _chopConf.hstrt_tfd = 4;
+	  _chopConf.hend_offset = 1;
+      _chopConf.mres = 1;
+    writeRegister(TMC5160_Reg::CHOPCONF, _chopConf.value);
 
-	// use position mode
-	setRampMode(POSITIONING_MODE);
+    // use position mode
+	setRampMode(VELOCITY_MODE);
 
 	TMC5160_Reg::GCONF_Register gconf = { 0 };
 	gconf.en_pwm_mode = true; //Enable stealthChop PWM mode
-	gconf.shaft = stepperDirection;
+	//gconf.shaft = stepperDirection;
 	writeRegister(TMC5160_Reg::GCONF, gconf.value);
 	
 	if(gconf.value == readRegister(TMC5160_Reg::GCONF)){
@@ -291,6 +292,17 @@ void TMC5160::enable()
 	writeRegister(TMC5160_Reg::CHOPCONF, _chopConf.value);
 }
 
+bool TMC5160::isIcRest() 
+{
+	TMC5160_Reg::GSTAT_Register gstat = {0};
+	gstat.value = readRegister(TMC5160_Reg::GSTAT);
+        	if (gstat.reset){
+        return true;
+			}
+		else {
+        return false;
+        }
+}
 TMC5160::DriverStatus TMC5160::getDriverStatus() 
 {
 	TMC5160_Reg::GSTAT_Register gstat = {0};
