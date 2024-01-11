@@ -40,70 +40,73 @@ TMC5160::~TMC5160()
 bool TMC5160::begin(const PowerStageParameters &powerParams, const MotorParameters &motorParams, MotorDirection stepperDirection )
 {
     bool retVal = false;
-    /* Clear the reset and charge pump undervoltage flags */
-    TMC5160_Reg::GSTAT_Register gstat = { 0 };
-	gstat.reset = true;
-	gstat.uv_cp = true;
-	writeRegister(TMC5160_Reg::GSTAT, gstat.value);
-
-    TMC5160_Reg::DRV_CONF_Register drvConf = { 0 };
-	drvConf.drvstrength = constrain(powerParams.drvStrength, 0, 3);
-	drvConf.bbmtime = constrain(powerParams.bbmTime, 0, 24);
-	drvConf.bbmclks = constrain(powerParams.bbmClks, 0, 15);
-	writeRegister(TMC5160_Reg::DRV_CONF, drvConf.value);
-
-	writeRegister(TMC5160_Reg::GLOBAL_SCALER, constrain(motorParams.globalScaler, 32, 256));
-
-	// set initial currents and delay
-	TMC5160_Reg::IHOLD_IRUN_Register iholdrun = { 0 };
-	iholdrun.ihold = constrain(motorParams.ihold, 0, 31);
-	iholdrun.irun = constrain(motorParams.irun, 0, 31);
-	iholdrun.iholddelay = 10;
-	writeRegister(TMC5160_Reg::IHOLD_IRUN, iholdrun.value);
-
-	// TODO set short detection / overcurrent protection levels
-
-	// Set initial PWM values
-	TMC5160_Reg::PWMCONF_Register pwmconf = { 0 };
-	pwmconf.value = 0xC40C001E; //Reset default
-	pwmconf.pwm_autoscale = true; //Temp to set OFS and GRAD initial values
-	if (_fclk > DEFAULT_F_CLK)
-		pwmconf.pwm_freq = 0;
-	else
-		pwmconf.pwm_freq = 0b01; // recommended : 35kHz with internal typ. 12MHZ clock. 0b01 => 2/683 * f_clk
-	pwmconf.pwm_grad = motorParams.pwmGradInitial;
-	pwmconf.pwm_ofs = motorParams.pwmOfsInitial;
-	pwmconf.freewheel = motorParams.freewheeling;
-	writeRegister(TMC5160_Reg::PWMCONF, pwmconf.value);
-
-	pwmconf.pwm_autoscale = true;
-	pwmconf.pwm_autograd = true;
-	writeRegister(TMC5160_Reg::PWMCONF, pwmconf.value);
-
-	// Recommended settings in quick config guide
-	   _chopConf.toff = 8;
-	   _chopConf.tbl = 1;
-	  _chopConf.hstrt_tfd = 4;
-	  _chopConf.hend_offset = 1;
-      _chopConf.mres = 1;
-    writeRegister(TMC5160_Reg::CHOPCONF, _chopConf.value);
-
-    // use position mode
-	setRampMode(VELOCITY_MODE);
-
-	TMC5160_Reg::GCONF_Register gconf = { 0 };
-	gconf.en_pwm_mode = true; //Enable stealthChop PWM mode
-	//gconf.shaft = stepperDirection;
-	writeRegister(TMC5160_Reg::GCONF, gconf.value);
 	
-	if(gconf.value == readRegister(TMC5160_Reg::GCONF)){
+    /* Clear the reset and charge pump undervoltage flags */
+    TMC5160_Reg::GSTAT_Register gstat = {0};
+    gstat.reset = true;
+    gstat.uv_cp = true;
+    writeRegister(TMC5160_Reg::GSTAT, gstat.value);
+
+    TMC5160_Reg::DRV_CONF_Register drvConf = {0};
+    drvConf.drvstrength = constrain(powerParams.drvStrength, 0, 3);
+    drvConf.bbmtime = constrain(powerParams.bbmTime, 0, 24);
+    drvConf.bbmclks = constrain(powerParams.bbmClks, 0, 15);
+    writeRegister(TMC5160_Reg::DRV_CONF, drvConf.value);
+
+    writeRegister(TMC5160_Reg::GLOBAL_SCALER, constrain(motorParams.globalScaler, 32, 256));
+
+    // set initial currents and delay
+    TMC5160_Reg::IHOLD_IRUN_Register iholdrun = {0};
+    iholdrun.ihold = constrain(motorParams.ihold, 0, 31);
+    iholdrun.irun = constrain(motorParams.irun, 0, 31);
+    iholdrun.iholddelay = 10;
+    writeRegister(TMC5160_Reg::IHOLD_IRUN, iholdrun.value);
+
+    // TODO(yasir): set short detection / overcurrent protection levels
+    setModeChangeSpeeds(170, 0, 0);
+
+    // Set initial PWM values
+    TMC5160_Reg::PWMCONF_Register pwmconf = {0};
+    pwmconf.value = 0xC40C001E;   // Reset default
+    pwmconf.pwm_autoscale = true;  // Temp to set OFS and GRAD initial values
+    if (_fclk > DEFAULT_F_CLK)
+        pwmconf.pwm_freq = 0;
+    else
+    pwmconf.pwm_freq = 0b01;  // recommended : 35kHz with internal typ. 12MHZ clock. 0b01 => 2/683 * f_clk
+    pwmconf.pwm_grad = motorParams.pwmGradInitial;
+    pwmconf.pwm_ofs = motorParams.pwmOfsInitial;
+    pwmconf.freewheel = motorParams.freewheeling;
+
+    pwmconf.pwm_autoscale = true;
+    pwmconf.pwm_autograd = true;
+    writeRegister(TMC5160_Reg::PWMCONF, pwmconf.value);
+
+    // Recommended settings in quick config guide
+    _chopConf.toff = 2;
+    _chopConf.tbl = 0;
+    _chopConf.hstrt_tfd = 7;
+    _chopConf.hend_offset = 7;
+    _chopConf.mres = 0;
+    _chopConf.chm = 0;
+    _chopConf.tpfd = 0;
+    writeRegister(TMC5160_Reg::CHOPCONF, _chopConf.value);
+    setRampMode(VELOCITY_MODE);
+
+    TMC5160_Reg::GCONF_Register gconf = {0};
+    gconf.en_pwm_mode = true; // Enable stealthChop PWM mode
+    gconf.multistep_filt = true;
+   //  gconf.shaft = 0;  // 1 to invert the motor direction
+    writeRegister(TMC5160_Reg::GCONF, gconf.value);
+
+    if (gconf.value == readRegister(TMC5160_Reg::GCONF))
+    {
         retVal = true;
     }
 
-	//Set default start, stop, threshold speeds.
-	setRampSpeeds(0, 0.1, 0); //Start, stop, threshold speeds */
+    // Set default start, stop, threshold speeds.
+    setRampSpeeds(50, 0, 0); // Start, stop, threshold speeds */
 
-	return (retVal);
+    return (retVal);
 }
 
 void TMC5160::end()
@@ -111,6 +114,8 @@ void TMC5160::end()
 	// no-op, just stop talking....
 	; // FIXME: try and shutdown motor/chips?
 }
+
+
 
 bool TMC5160::isLastReadSuccessful()
 {
@@ -217,9 +222,28 @@ void TMC5160::setTargetPosition(float position)
 {
 	writeRegister(TMC5160_Reg::XTARGET, (int32_t)(position * (float)_uStepCount));
 }
-
+unsigned long Starttime=0;
+int count=0;
 void TMC5160::setMaxSpeed(float speed)
 {
+	if(speed!=0)
+	{
+	count++;
+	if(millis()-Starttime>3000)
+	{
+		writeRegister(TMC5160_Reg::GLOBAL_SCALER, constrain(136, 32, 256));
+
+	}
+	}
+	if(speed==0){
+	writeRegister(TMC5160_Reg::GLOBAL_SCALER, constrain(174, 32, 256));
+	count=0;
+	}
+	if(count==0)
+	{
+	Starttime=millis();
+	}
+	speed = 1.666666667 * speed;
 	writeRegister(TMC5160_Reg::VMAX, speedFromHz(fabs(speed)));
 
 	if (_currentRampMode == VELOCITY_MODE)
@@ -230,22 +254,22 @@ void TMC5160::setMaxSpeed(float speed)
 
 void TMC5160::setRampSpeeds(float startSpeed, float stopSpeed, float transitionSpeed)
 {
-	writeRegister(TMC5160_Reg::VSTART, speedFromHz(fabs(startSpeed)));
-	writeRegister(TMC5160_Reg::VSTOP, speedFromHz(fabs(stopSpeed)));
-	writeRegister(TMC5160_Reg::V_1, speedFromHz(fabs(transitionSpeed)));
+    writeRegister(TMC5160_Reg::VSTART, speedFromHz(fabs(startSpeed)));
+    writeRegister(TMC5160_Reg::VSTOP, speedFromHz(fabs(stopSpeed)));
+    writeRegister(TMC5160_Reg::V_1, speedFromHz(fabs(transitionSpeed)));
 }
 
 void TMC5160::setAcceleration(float maxAccel)
 {
-	setAccelerations(maxAccel, maxAccel, maxAccel, maxAccel);
+    writeRegister(TMC5160_Reg::AMAX, accelFromHz(fabs(maxAccel)));
 }
 
-void TMC5160::setAccelerations(float maxAccel, float maxDecel, float startAccel, float finalDecel)
+void TMC5160::setAccelerations(float maxAccel, float startAccel, float maxDecel, float finalDecel)
 {
-	writeRegister(TMC5160_Reg::AMAX, accelFromHz(fabs(maxAccel)));
-	writeRegister(TMC5160_Reg::DMAX, accelFromHz(fabs(maxDecel)));
-	writeRegister(TMC5160_Reg::A_1, accelFromHz(fabs(startAccel)));
-	writeRegister(TMC5160_Reg::D_1, accelFromHz(fabs(finalDecel)));
+    writeRegister(TMC5160_Reg::DMAX, accelFromHz(fabs(maxDecel)));
+    writeRegister(TMC5160_Reg::AMAX, accelFromHz(fabs(maxAccel)));
+    writeRegister(TMC5160_Reg::A_1, accelFromHz(fabs(startAccel)));
+    writeRegister(TMC5160_Reg::D_1, accelFromHz(fabs(finalDecel)));
 }
 
 /**
@@ -289,28 +313,48 @@ void TMC5160::disable()
 
 void TMC5160::enable()
 {
-	writeRegister(TMC5160_Reg::CHOPCONF, _chopConf.value);
+    writeRegister(TMC5160_Reg::CHOPCONF, _chopConf.value);
 }
-
-bool TMC5160::isIcRest() 
+void TMC5160::setcurrent(uint16_t gS)
 {
-	TMC5160_Reg::GSTAT_Register gstat = {0};
-	gstat.value = readRegister(TMC5160_Reg::GSTAT);
-        	if (gstat.reset){
+    writeRegister(TMC5160_Reg::GLOBAL_SCALER, constrain(gS, 32, 256));
+}
+bool TMC5160::isIcRest()
+{
+    TMC5160_Reg::GSTAT_Register gstat = {0};
+    gstat.value = readRegister(TMC5160_Reg::GSTAT);
+    if (gstat.reset)
+    {
         return true;
-			}
-		else {
+    }
+    else
+    {
         return false;
-        }
+    }
 }
-TMC5160::DriverStatus TMC5160::getDriverStatus() 
+TMC5160::DriverStatus TMC5160::getDriverStatus()
 {
-	TMC5160_Reg::GSTAT_Register gstat = {0};
-	gstat.value = readRegister(TMC5160_Reg::GSTAT);
-	TMC5160_Reg::DRV_STATUS_Register drvStatus = {0};
-	drvStatus.value = readRegister(TMC5160_Reg::DRV_STATUS);
+    TMC5160_Reg::GSTAT_Register gstat = {0};
+    gstat.value = readRegister(TMC5160_Reg::GSTAT);
+    TMC5160_Reg::DRV_STATUS_Register drvStatus = {0};
+    drvStatus.value = readRegister(TMC5160_Reg::DRV_STATUS);
 
-	if (gstat.uv_cp)
+    Serial.print(drvStatus.value, BIN);
+
+    if (drvStatus.stealth)
+    {
+        Serial.println("stealthchop");
+    }
+    else
+    {
+        Serial.println("speread cycle");
+    }
+	if(drvStatus.stst){
+		Serial.println("standstill");
+	}
+    Serial.println("Sg_result:" + String(drvStatus.sg_result));
+
+    if (gstat.uv_cp)
 		return CP_UV;
 	if (drvStatus.s2vsa)
 		return S2VSA;

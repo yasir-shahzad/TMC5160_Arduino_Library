@@ -102,6 +102,29 @@ namespace TMC5160_Reg {
     LOST_STEPS        = 0x73  // Number of input steps skipped due to dcStep. only with SD_MODE = 1
   };
 
+
+  //   // General Configuration Registers
+  // const static uint8_t ADDRESS_GCONF = 0x00;
+  // union GlobalConfig
+  // {
+  //   struct
+  //   {
+  //     uint32_t i_scale_analog : 1;
+  //     uint32_t internal_rsense : 1;
+  //     uint32_t enable_spread_cycle : 1;
+  //     uint32_t shaft : 1;
+  //     uint32_t index_otpw : 1;
+  //     uint32_t index_step : 1;
+  //     uint32_t pdn_disable : 1;
+  //     uint32_t mstep_reg_select : 1;
+  //     uint32_t multistep_filt : 1;
+  //     uint32_t test_mode : 1;
+  //     uint32_t reserved : 22;
+  //   };
+  //   uint32_t bytes;
+  // };
+  // GlobalConfig global_config_;
+
   /* Register bit fields */
 
   /* General configuration register */

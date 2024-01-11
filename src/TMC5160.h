@@ -78,7 +78,7 @@ public:
 
 	virtual bool begin(const PowerStageParameters &powerParams, const MotorParameters &motorParams, MotorDirection stepperDirection/*=NORMAL_MOTOR_DIRECTION*/);
 	void end();
-
+    void setcurrent(uint16_t gS);
 	//TODO stealthChop tuning procedure
 
 	virtual uint32_t readRegister(uint8_t address) = 0;	// addresses are from TMC5160.h
@@ -111,7 +111,7 @@ public:
 	void setMaxSpeed(float speed); // Set the max speed VMAX (steps/second)
 	void setRampSpeeds(float startSpeed, float stopSpeed, float transitionSpeed); // Set the ramp start speed VSTART, ramp stop speed VSTOP, acceleration transition speed V1 (steps / second). /!\ Set VSTOP >= VSTART, VSTOP >= 0.1
 	void setAcceleration(float maxAccel); // Set the ramp acceleration / deceleration (steps / second^2)
-	void setAccelerations(float maxAccel, float maxDecel, float startAccel, float finalDecel); // Set the ramp accelerations AMAX, DMAX, A1, D1 (steps / second^2) /!\ Do not set startAccel, finalDecel to 0 even if transitionSpeed = 0
+	void setAccelerations(float maxAccel, float startAccel, float maxDecel, float finalDecel); // Set the ramp accelerations AMAX, DMAX, A1, D1 (steps / second^2) /!\ Do not set startAccel, finalDecel to 0 even if transitionSpeed = 0
 
 	bool isTargetPositionReached(void); // Return true if the target position has been reached
 	bool isTargetVelocityReached(void); // Return true if the target velocity has been reached
@@ -195,24 +195,37 @@ protected:
 	bool _lastRegisterReadSuccess = false;
 
 private:
-	uint32_t _fclk;
-	RampMode _currentRampMode;
-	static constexpr uint16_t _uStepCount = 256; // Number of microsteps per step
-	TMC5160_Reg::CHOPCONF_Register _chopConf = { 0 }; //CHOPCONF register (saved here to be restored when disabling / enabling driver)
+  uint32_t _fclk;
+  RampMode _currentRampMode;
+  static constexpr uint16_t _uStepCount = 256; // Number of microsteps per step
+  TMC5160_Reg::CHOPCONF_Register _chopConf = {
+      0};  // CHOPCONF register (saved here to be restored when disabling / enabling driver)
 
-	// Following §14.1 Real world unit conversions
-	// v[Hz] = v[5160A] * ( f CLK [Hz]/2 / 2^23 )
-	float speedToHz(long speedInternal) { return ((float)speedInternal * (float)_fclk / (float)(1ul << 24) / (float)_uStepCount); }
-	long speedFromHz(float speedHz) { return (long)(speedHz / ((float)_fclk / (float)(1ul << 24)) * (float)_uStepCount); }
+  // Referring to Topic 12.1 on Page 81 of Datasheet Version 1.17 for Real-world Unit Conversions
+  //  v[Hz] = v[5160A] * ( f CLK [Hz]/2 / 2^23 )
+  float speedToHz(long speedInternal)
+  {  //fclk = 12MHz, _uStepCount = 256,
+      return ((float)speedInternal * (float)_fclk / (float)(1ul << 24) / (float)_uStepCount);
+  }
+  long speedFromHz(float speedHz)
+  {
+      return (long)(speedHz / ((float)_fclk / (float)(1ul << 24)) * (float)_uStepCount);
+  }
 
-	// Following §14.1 Real world unit conversions
-	// a[Hz/s] = a[5160A] * f CLK [Hz]^2 / (512*256) / 2^24
-	long accelFromHz(float accelHz) { return (long)(accelHz / ((float)_fclk * (float)_fclk / (512.0*256.0) / (float)(1ul<<24)) * (float)_uStepCount); }
+  // Following §14.1 Real world unit conversions
+  // a[Hz/s] = a[5160A] * f CLK [Hz]^2 / (512*256) / 2^24
+  long accelFromHz(float accelHz)
+  {
+      return (long)(accelHz / ((float)_fclk * (float)_fclk / (512.0 * 256.0) / (float)(1ul << 24)) *
+                    (float)_uStepCount);
+  }
 
-	// See §12 Velocity based mode control
-	long thrsSpeedToTstep(float thrsSpeed) { return thrsSpeed != 0.0 ? (long)constrain((float)_fclk / (thrsSpeed * 256.0), 0, 1048575) : 0; }
+  // See §12 Velocity based mode control
+  long thrsSpeedToTstep(float thrsSpeed)
+  {
+      return thrsSpeed != 0.0 ? (long)constrain((float)_fclk / (thrsSpeed * 256.0), 0, 1048575) : 0;
+  }
 };
-
 
 /* SPI interface : 
  * the TMC5160 SWSEL input has to be low (default state).

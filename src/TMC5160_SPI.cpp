@@ -36,8 +36,8 @@ TMC5160_SPI::TMC5160_SPI( uint8_t chipSelectPin, uint32_t fclk, const SPISetting
 void _chipSelect( uint8_t pin, bool select )
 {
 	digitalWrite(pin, select?LOW:HIGH);
-	if( select )
-		delayMicroseconds(100);   // per spec, settling time is 100us
+	//if( select )
+	//	delayMicroseconds(100);   // per spec, settling time is 100us
 }
 
 void TMC5160_SPI::_beginTransaction()
