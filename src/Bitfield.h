@@ -1,6 +1,4 @@
-/* From https://blog.codef00.com/2014/12/06/portable-bitfields-using-c11/
- * No license defined.
- */
+
 
 #ifndef BITFIELD_H_
 #define BITFIELD_H_

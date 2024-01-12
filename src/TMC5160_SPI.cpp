@@ -1,26 +1,3 @@
-/*
-MIT License
-
-Copyright (c) 2016 Mike Estee
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
 
 #include "TMC5160.h"
 
@@ -36,8 +13,6 @@ TMC5160_SPI::TMC5160_SPI( uint8_t chipSelectPin, uint32_t fclk, const SPISetting
 void _chipSelect( uint8_t pin, bool select )
 {
 	digitalWrite(pin, select?LOW:HIGH);
-	//if( select )
-	//	delayMicroseconds(100);   // per spec, settling time is 100us
 }
 
 void TMC5160_SPI::_beginTransaction()
@@ -103,15 +78,15 @@ uint8_t TMC5160_SPI::writeRegister(uint8_t address, uint32_t data)
 
 uint8_t TMC5160_SPI::readStatus()
 {
- 	// read general config
- 	_beginTransaction();
- 	uint8_t status = _spi->transfer(TMC5160_Reg::GCONF);
- 	// send dummy data
- 	_spi->transfer(0x00);
- 	_spi->transfer(0x00);
- 	_spi->transfer(0x00);
- 	_spi->transfer(0x00);
- 	_endTransaction();
+    // read general config
+    _beginTransaction();
+    uint8_t status = _spi->transfer(TMC5160_Reg::GCONF);
+    // send dummy data
+    _spi->transfer(0x00);
+    _spi->transfer(0x00);
+    _spi->transfer(0x00);
+    _spi->transfer(0x00);
+    _endTransaction();
 
-	return status;
+    return status;
 }

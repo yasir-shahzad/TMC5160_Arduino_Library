@@ -1,26 +1,4 @@
-/*
-MIT License
 
-Copyright (c) 2017 Tom Magnier
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
 
 #ifndef TMC5160_REGISTERS_H
 #define TMC5160_REGISTERS_H
@@ -103,27 +81,65 @@ namespace TMC5160_Reg {
   };
 
 
-  //   // General Configuration Registers
-  // const static uint8_t ADDRESS_GCONF = 0x00;
-  // union GlobalConfig
-  // {
-  //   struct
-  //   {
-  //     uint32_t i_scale_analog : 1;
-  //     uint32_t internal_rsense : 1;
-  //     uint32_t enable_spread_cycle : 1;
-  //     uint32_t shaft : 1;
-  //     uint32_t index_otpw : 1;
-  //     uint32_t index_step : 1;
-  //     uint32_t pdn_disable : 1;
-  //     uint32_t mstep_reg_select : 1;
-  //     uint32_t multistep_filt : 1;
-  //     uint32_t test_mode : 1;
-  //     uint32_t reserved : 22;
-  //   };
-  //   uint32_t bytes;
-  // };
-  // GlobalConfig global_config_;
+  // General Configuration Registers
+const static uint8_t ADDRESS_GCONF = 0x00;
+union GlobalConfig {
+    struct
+    {
+        uint8_t recalibrate            : 1,  ///< Zero crossing recalibration during driver disable
+                faststandstill         : 1,
+                en_pwm_mode            : 1,
+                multistep_filt         : 1,
+                shaft                  : 1,
+                diag0_error            : 1,
+                diag0_otpw             : 1,
+                diag0_stall_step       : 1,
+                diag1_stall_dir        : 1,
+                diag1_index            : 1,
+                diag1_onstate          : 1,
+                diag1_steps_skipped    : 1,
+                diag0_int_pushpull     : 1,
+                diag1_poscomp_pushpull : 1,
+                small_hysteresis       : 1,
+                stop_enable            : 1,
+                direct_mode            : 1,
+                test_mode              : 1,
+    };
+    uint32_t bytes;
+};
+GlobalConfig global_config_;
+
+// General Configuration Registers
+const static uint8_t ADDRESS_GCONF = 0x00;
+union GlobalConfig {
+    struct {
+        uint8_t recalibrate            : 1,  ///< Recalibrate on driver disable due to zero crossing
+                faststandstill         : 1,  ///< Timeout for step execution until standstill detection
+                en_pwm_mode            : 1,  ///< Enable stealthChop voltage PWM mode
+                multistep_filt         : 1,  ///< Enable step input filtering for stealthChop with external step source
+                shaft                  : 1,  ///< Set motor direction as normal or inverse
+                diag0_error            : 1,  ///< Activate DIAG0 on driver errors: Over temperature (ot), short to GND (s2g), undervoltage chargepump (uv_cp)
+                diag0_otpw             : 1,  ///< Activate DIAG0 on driver over temperature prewarning (otpw)
+                diag0_stall_step       : 1,  ///< SD_MODE=1: Activate DIAG0 on motor stall. SD_MODE=0: Use DIAG0 as STEP output
+                diag1_stall_dir        : 1,  ///< SD_MODE=1: Activate DIAG1 on motor stall. SD_MODE=0: Use DIAG1 as DIR output
+                diag1_index            : 1,  ///< Activate DIAG1 on index position
+                diag1_onstate          : 1,  ///< Activate DIAG1 when chopper is on
+                diag1_steps_skipped    : 1,  ///< Toggle output when steps are skipped in dcStep mode
+                diag0_int_pushpull     : 1,  ///< Enable SWN_DIAG0 push-pull output
+                diag1_poscomp_pushpull : 1,  ///< Enable SWP_DIAG1 push-pull output
+                small_hysteresis       : 1,  ///< Set small hysteresis for step frequency comparison
+                stop_enable            : 1,  ///< Enable emergency stop: ENCA_DCIN stops sequencer when tied high
+                direct_mode            : 1,  ///< Enable direct motor current and polarity control
+                test_mode              : 1;  ///< Not intended for normal use
+    };
+    uint32_t bytes;
+};
+GlobalConfig global_config_;
+
+
+
+
+
 
   /* Register bit fields */
 
