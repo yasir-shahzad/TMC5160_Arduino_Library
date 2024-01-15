@@ -491,3 +491,5 @@ void TMC5160::setShortProtectionLevels(int s2vsLevel, int s2gLevel, int shortFil
 
 	writeRegister(TMC5160_Reg::SHORT_CONF, shortConf.value);
 }
+
+
