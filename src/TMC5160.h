@@ -2,17 +2,27 @@
 #ifndef TMC5160_H
 #define TMC5160_H
 
+#include "TMC5160_registers.h"
 #include <Arduino.h>
 #include <SPI.h>
-#include "TMC5160_registers.h"
 
-class TMC5160 {
-public:
-	static constexpr uint8_t IC_VERSION = 0x30;
-	static constexpr uint32_t DEFAULT_F_CLK = 12000000; // Typical internal clock frequency in Hz.
+class TMC5160
+{
+  public:
+    static constexpr uint8_t IC_VERSION = 0x30;
+    static constexpr uint32_t DEFAULT_F_CLK = 12000000; // Typical internal clock frequency in Hz.
 
-	enum MotorDirection { NORMAL_MOTOR_DIRECTION =	0x00, INVERSE_MOTOR_DIRECTION = 0x1 };
-	enum RampMode { POSITIONING_MODE, VELOCITY_MODE, HOLD_MODE };
+    enum MotorDirection
+    {
+        NORMAL_MOTOR_DIRECTION = 0x00,
+        INVERSE_MOTOR_DIRECTION = 0x1
+    };
+    enum RampMode
+    {
+        POSITIONING_MODE,
+        VELOCITY_MODE,
+        HOLD_MODE
+    };
 
     enum DriverStatus
     {
@@ -62,15 +72,8 @@ public:
     void setcurrent(uint16_t gS);
     // TODO(yasir): stealthChop tuning procedure
 
-    virtual uint32_t readRegister(uint8_t address) = 0;  // addresses are from TMC5160.h
+    virtual uint32_t readRegister(uint8_t address) = 0; // addresses are from TMC5160.h
     virtual uint8_t writeRegister(uint8_t address, uint32_t data) = 0;
-
-    /* Check if the last register read was successful. This should be checked whenever
-     a register read is used to take a decision.
-     Reasons for failure can be : data bus disconnected, transmission error (bad CRC), etc
-     This is mostly useful in UART mode.
-     */
-    bool isLastReadSuccessful();
 
     /* Ramp mode selection :
         - Positioning mode : autonomous move to XTARGET using all A, D and V parameters.
@@ -79,12 +82,12 @@ public:
     */
     void setRampMode(RampMode mode);
 
-    float getCurrentPosition();  // Return the current internal position (steps)
-    float getEncoderPosition();  // Return the current position according to the encoder counter (steps)
-    float getLatchedPosition();  // Return the position that was latched on the last ref switch / encoder event (steps)
-    float getLatchedEncoderPosition();  // Return the encoder position that was latched on the last encoder event (steps)
-    float getTargetPosition();          // Get the target position (steps)
-    float getCurrentSpeed();            // Return the current speed (steps / second)
+    float getCurrentPosition(); // Return the current internal position (steps)
+    float getEncoderPosition(); // Return the current position according to the encoder counter (steps)
+    float getLatchedPosition(); // Return the position that was latched on the last ref switch / encoder event (steps)
+    float getLatchedEncoderPosition(); // Return the encoder position that was latched on the last encoder event (steps)
+    float getTargetPosition();         // Get the target position (steps)
+    float getCurrentSpeed();           // Return the current speed (steps / second)
 
     void setCurrentPosition(float position,
                             bool updateEncoderPos = false); // Set the current internal position (steps) and optionally
@@ -157,162 +160,200 @@ public:
      */
     void setEncoderLatching(bool enabled);
 
-	/* Set maximum number of steps between internal position and encoder position
-	 * before triggering the deviation flag.
-	 * Set to 0 to disable. */
-	void setEncoderAllowedDeviation(int steps);
+    /* Set maximum number of steps between internal position and encoder position
+     * before triggering the deviation flag.
+     * Set to 0 to disable. */
+    void setEncoderAllowedDeviation(int steps);
 
-	/* Check if a deviation between internal pos and encoder has been detected */
-	bool isEncoderDeviationDetected();
+    /* Check if a deviation between internal pos and encoder has been detected */
+    bool isEncoderDeviationDetected();
 
-	/* Clear encoder deviation flag (deviation condition must be handled before) */
-	void clearEncoderDeviationFlag();
+    /* Clear encoder deviation flag (deviation condition must be handled before) */
+    void clearEncoderDeviationFlag();
 
-	//TODO end stops and stallguard config functions ?
+    // TODO end stops and stallguard config functions ?
 
-	/* Configure the integrated short protection. Check datasheet for details.
-	 * - s2vsLevel : 4 (highest sensitivity) to 15 ; 6 to 8 recommended ; reset default 6
-	 * - s2gLevel : 2 (highest sensitivity) to 15 ; 6 to 14 recommended ; reset default 6 ; increase at higher voltage
-	 * - shortFilter : 0 to 3 ; reset default 1 ; increase in case of erroneous detection
-	 * - shortDelay : 0 to 1 ; reset default 0
-	 */
-	void setShortProtectionLevels(int s2vsLevel, int s2gLevel, int shortFilter, int shortDelay = 0);
+    /* Configure the integrated short protection. Check datasheet for details.
+     * - s2vsLevel : 4 (highest sensitivity) to 15 ; 6 to 8 recommended ; reset default 6
+     * - s2gLevel : 2 (highest sensitivity) to 15 ; 6 to 14 recommended ; reset default 6 ; increase at higher voltage
+     * - shortFilter : 0 to 3 ; reset default 1 ; increase in case of erroneous detection
+     * - shortDelay : 0 to 1 ; reset default 0
+     */
+    void setShortProtectionLevels(int s2vsLevel, int s2gLevel, int shortFilter, int shortDelay = 0);
 
-protected:
-	static constexpr uint8_t WRITE_ACCESS = 0x80;	//Register write access for spi / uart communication
+    void setStealthChop(void);
+    void setVelocityMode(void);
+    void setDCStep(void);
+    void setStealthChop(void);
+    void setSpreadCycle(void);
+    void setEncoder(int counts);
+    void invertDriver(bool invert);
+    void setCurrentMilliamps(int mA);
+    // setmicrostepping
+    void setMicrosteps(uint8_t microsteps);
 
-	bool _lastRegisterReadSuccess = false;
+  protected:
+    static constexpr uint8_t WRITE_ACCESS = 0x80; // Register write access for spi / uart communication
 
-private:
-  uint32_t _fclk;
-  RampMode _currentRampMode;
-  static constexpr uint16_t _uStepCount = 256; // Number of microsteps per step
-  TMC5160_Reg::CHOPCONF_Register _chopConf = {
-      0};  // CHOPCONF register (saved here to be restored when disabling / enabling driver)
+  private:
+    uint32_t _fclk;
+    RampMode _currentRampMode;
+    static constexpr uint16_t _uStepCount = 256; // Number of microsteps per step
+    TMC5160_Reg::CHOPCONF_Register _chopConf = {
+        0}; // CHOPCONF register (saved here to be restored when disabling / enabling driver)
 
-  // Referring to Topic 12.1 on Page 81 of Datasheet Version 1.17 for Real-world Unit Conversions
-  //  v[Hz] = v[5160A] * ( f CLK [Hz]/2 / 2^23 )
-  float speedToHz(long speedInternal)
-  {  //fclk = 12MHz, _uStepCount = 256,
-      return ((float)speedInternal * (float)_fclk / (float)(1ul << 24) / (float)_uStepCount);
-  }
-  long speedFromHz(float speedHz)
-  {
-      return (long)(speedHz / ((float)_fclk / (float)(1ul << 24)) * (float)_uStepCount);
-  }
+    // Referring to Topic 12.1 on Page 81 of Datasheet Version 1.17 for Real-world Unit Conversions
+    //  v[Hz] = v[5160A] * ( f CLK [Hz]/2 / 2^23 )
+    float speedToHz(long speedInternal)
+    { // fclk = 12MHz, _uStepCount = 256,
+        return ((float)speedInternal * (float)_fclk / (float)(1ul << 24) / (float)_uStepCount);
+    }
+    long speedFromHz(float speedHz)
+    {
+        return (long)(speedHz / ((float)_fclk / (float)(1ul << 24)) * (float)_uStepCount);
+    }
 
-  // Following §14.1 Real world unit conversions
-  // a[Hz/s] = a[5160A] * f CLK [Hz]^2 / (512*256) / 2^24
-  long accelFromHz(float accelHz)
-  {
-      return (long)(accelHz / ((float)_fclk * (float)_fclk / (512.0 * 256.0) / (float)(1ul << 24)) *
-                    (float)_uStepCount);
-  }
+    // Following §14.1 Real world unit conversions
+    // a[Hz/s] = a[5160A] * f CLK [Hz]^2 / (512*256) / 2^24
+    long accelFromHz(float accelHz)
+    {
+        return (long)(accelHz / ((float)_fclk * (float)_fclk / (512.0 * 256.0) / (float)(1ul << 24)) *
+                      (float)_uStepCount);
+    }
 
-  // See §12 Velocity based mode control
-  long thrsSpeedToTstep(float thrsSpeed)
-  {
-      return thrsSpeed != 0.0 ? (long)constrain((float)_fclk / (thrsSpeed * 256.0), 0, 1048575) : 0;
-  }
+    // See §12 Velocity based mode control
+    long thrsSpeedToTstep(float thrsSpeed)
+    {
+        return thrsSpeed != 0.0 ? (long)constrain((float)_fclk / (thrsSpeed * 256.0), 0, 1048575) : 0;
+    }
 };
 
 /* SPI interface : 
  * the TMC5160 SWSEL input has to be low (default state).
  */
-class TMC5160_SPI : public TMC5160 {
-public:
-	TMC5160_SPI( uint8_t chipSelectPin,	// pin to use for the SPI bus SS line
-		uint32_t fclk = DEFAULT_F_CLK,
-		const SPISettings &spiSettings = SPISettings(1000000, MSBFIRST, SPI_MODE3), // spi bus settings to use
-		SPIClass& spi = SPI ); // spi class to use
+class TMC5160_SPI : public TMC5160
+{
+  public:
+    TMC5160_SPI(uint8_t chipSelectPin, // pin to use for the SPI bus SS line
+                uint32_t fclk = DEFAULT_F_CLK,
+                const SPISettings &spiSettings = SPISettings(1000000, MSBFIRST, SPI_MODE3), // spi bus settings to use
+                SPIClass &spi = SPI);                                                       // spi class to use
 
-	uint32_t readRegister(uint8_t address);	// addresses are from TMC5160.h
-	uint8_t  writeRegister(uint8_t address, uint32_t data);
-	uint8_t  readStatus();
+    uint32_t readRegister(uint8_t address); // addresses are from TMC5160.h
+    uint8_t writeRegister(uint8_t address, uint32_t data);
 
-private:
-	uint8_t _CS;
-	SPISettings _spiSettings;
-	SPIClass *_spi;
+  private:
+    uint8_t _CS;
+    SPISettings _spiSettings;
+    SPIClass *_spi;
 
-	void _beginTransaction();
-	void _endTransaction();
+    void _beginTransaction();
+    void _endTransaction();
 };
-
 
 /* Generic UART interface */
-class TMC5160_UART_Generic : public TMC5160 {
-public:
-	/* Read/write register return codes */
-	enum ReadStatus {SUCCESS, NO_REPLY, INVALID_FORMAT, BAD_CRC};
+class TMC5160_UART_Generic : public TMC5160
+{
+  public:
+    /* Read/write register return codes */
+    enum ReadStatus
+    {
+        SUCCESS,
+        NO_REPLY,
+        INVALID_FORMAT,
+        BAD_CRC
+    };
 
-	/* Serial communication modes. In reliable mode, register writes are checked and
-	 * retried if necessary, and register reads are retried multiple times in case
-	 * of failure. In streaming mode, none of these checks are performed and register
-	 * read / writes are tried only once. Default is Streaming mode. */
-	enum CommunicationMode {RELIABLE_MODE, STREAMING_MODE};
+    /* Serial communication modes. In reliable mode, register writes are checked and
+     * retried if necessary, and register reads are retried multiple times in case
+     * of failure. In streaming mode, none of these checks are performed and register
+     * read / writes are tried only once. Default is Streaming mode. */
+    enum CommunicationMode
+    {
+        RELIABLE_MODE,
+        STREAMING_MODE
+    };
 
+    TMC5160_UART_Generic(uint8_t slaveAddress = 0, // TMC5160 slave address (default 0 if NAI is low, 1 if NAI is high)
+                         uint32_t fclk = DEFAULT_F_CLK);
 
-	TMC5160_UART_Generic(uint8_t slaveAddress = 0, // TMC5160 slave address (default 0 if NAI is low, 1 if NAI is high)
-		uint32_t fclk = DEFAULT_F_CLK);
+    virtual bool begin(PowerStageParameters &powerParams, MotorParameters &motorParams,
+                       MotorDirection stepperDirection /*=NORMAL_MOTOR_DIRECTION*/);
 
-	virtual bool begin(PowerStageParameters &powerParams, MotorParameters &motorParams, MotorDirection stepperDirection/*=NORMAL_MOTOR_DIRECTION*/);
+    uint32_t readRegister(
+        uint8_t address,
+        ReadStatus *status); // addresses are from TMC5160.h. Pass an optional status pointer to detect failures.
+    uint32_t readRegister(uint8_t address)
+    {
+        return readRegister(address, nullptr);
+    }
+    uint8_t writeRegister(uint8_t address, uint32_t data,
+                          ReadStatus *status); // Pass an optional status pointer to detect failures.
+    uint8_t writeRegister(uint8_t address, uint32_t data)
+    {
+        return writeRegister(address, data, nullptr);
+    }
 
-	uint32_t readRegister(uint8_t address, ReadStatus *status);	// addresses are from TMC5160.h. Pass an optional status pointer to detect failures.
-	uint32_t readRegister(uint8_t address) { return readRegister(address, nullptr); }
-	uint8_t  writeRegister(uint8_t address, uint32_t data, ReadStatus *status); // Pass an optional status pointer to detect failures.
-	uint8_t writeRegister(uint8_t address, uint32_t data) { return writeRegister(address, data, nullptr); }
+    void resetCommunication(); // Reset communication with TMC5160 : pause activity on the serial bus.
 
-	void resetCommunication(); // Reset communication with TMC5160 : pause activity on the serial bus.
+    void setSlaveAddress(uint8_t slaveAddress,
+                         bool NAI = true); // Set the slave address register. Take into account the TMC5160 NAI input
+                                           // (default to high). Range : 0 - 253 if NAI is low, 1 - 254 if NAI is high.
+    void setInternalSlaveAddress(uint8_t slaveAddress)
+    {
+        _slaveAddress = slaveAddress;
+    }
+    uint8_t getSlaveAddress()
+    {
+        return _slaveAddress;
+    }
 
-	void setSlaveAddress(uint8_t slaveAddress, bool NAI=true); // Set the slave address register. Take into account the TMC5160 NAI input (default to high). Range : 0 - 253 if NAI is low, 1 - 254 if NAI is high.
-	void setInternalSlaveAddress(uint8_t slaveAddress) { _slaveAddress = slaveAddress; }
-	uint8_t getSlaveAddress() { return _slaveAddress; }
+    void setCommunicationMode(CommunicationMode mode);
 
-	void setCommunicationMode(CommunicationMode mode);
+    /* Register read / write statistics */
+    void resetCommunicationSuccessRate();
+    float getReadSuccessRate();
+    float getWriteSuccessRate();
 
-	/* Register read / write statistics */
-	void resetCommunicationSuccessRate();
-	float getReadSuccessRate();
-	float getWriteSuccessRate();
-protected:
-	static constexpr uint8_t NB_RETRIES_READ = 3;
-	static constexpr uint8_t NB_RETRIES_WRITE = 3;
+  protected:
+    static constexpr uint8_t NB_RETRIES_READ = 3;
+    static constexpr uint8_t NB_RETRIES_WRITE = 3;
 
-	uint8_t _slaveAddress;
-	CommunicationMode _currentMode;
-	uint8_t _transmissionCounter;
+    uint8_t _slaveAddress;
+    CommunicationMode _currentMode;
+    uint8_t _transmissionCounter;
 
-	/* Read / write fail statistics */
-	uint32_t _readAttemptsCounter;
-	uint32_t _readSuccessfulCounter;
-	uint32_t _writeAttemptsCounter;
-	uint32_t _writeSuccessfulCounter;
+    /* Read / write fail statistics */
+    uint32_t _readAttemptsCounter;
+    uint32_t _readSuccessfulCounter;
+    uint32_t _writeAttemptsCounter;
+    uint32_t _writeSuccessfulCounter;
 
+    virtual void beginTransmission()
+    {
+        delayMicroseconds(180); // FIXME a communication reset time is necessary between 2 read/write accesses. Depends
+                                // on the baudrate !
+    }
 
-	virtual void beginTransmission()
-	{
-		delayMicroseconds(180); //FIXME a communication reset time is necessary between 2 read/write accesses. Depends on the baudrate !
-	}
+    virtual void endTransmission()
+    {
+    }
 
-	virtual void endTransmission() {}
+    virtual void uartFlushInput() = 0;
+    virtual void uartWriteBytes(const uint8_t *buf, uint8_t len) = 0;
+    virtual int uartReadBytes(uint8_t *buf, uint8_t len) = 0;
+    virtual uint8_t uartReadByte() = 0;
+    virtual int uartBytesAvailable() = 0;
 
-	virtual void uartFlushInput() = 0;
-	virtual void uartWriteBytes(const uint8_t *buf, uint8_t len) = 0;
-	virtual int uartReadBytes(uint8_t *buf, uint8_t len) = 0;
-	virtual uint8_t uartReadByte() = 0;
-	virtual int uartBytesAvailable() = 0;
+    uint32_t _readReg(uint8_t address, ReadStatus *status);
+    void _writeReg(uint8_t address, uint32_t data);
 
-	uint32_t _readReg(uint8_t address, ReadStatus *status);
-	void _writeReg(uint8_t address, uint32_t data);
+  private:
+    static constexpr uint8_t SYNC_BYTE = 0x05;
+    static constexpr uint8_t MASTER_ADDRESS = 0xFF;
 
-private:
-	static constexpr uint8_t SYNC_BYTE = 0x05;
-	static constexpr uint8_t MASTER_ADDRESS = 0xFF;
-
-	void computeCrc(uint8_t *datagram, uint8_t datagramLength);
+    void computeCrc(uint8_t *datagram, uint8_t datagramLength);
 };
-
 
 /* Arduino UART interface :
  * the TMC5160 SWSEL input must be tied high.
@@ -325,42 +366,44 @@ private:
  * Serial must be initialized externally. Serial.setTimeout() must be set to a
  * decent value to avoid blocking for too long if there is a RX error.
  */
-class TMC5160_UART : public TMC5160_UART_Generic {
-public:
-	TMC5160_UART(Stream& serial = Serial, // Serial port to use
-		uint8_t slaveAddress = 0, // TMC5160 slave address (default 0 if NAI is low, 1 if NAI is high)
-		uint32_t fclk = DEFAULT_F_CLK) :
-		TMC5160_UART_Generic(slaveAddress, fclk), _serial(&serial)
-	{	}
+class TMC5160_UART : public TMC5160_UART_Generic
+{
+  public:
+    TMC5160_UART(Stream &serial = Serial,  // Serial port to use
+                 uint8_t slaveAddress = 0, // TMC5160 slave address (default 0 if NAI is low, 1 if NAI is high)
+                 uint32_t fclk = DEFAULT_F_CLK)
+        : TMC5160_UART_Generic(slaveAddress, fclk), _serial(&serial)
+    {
+    }
 
-protected:
-	Stream *_serial;
+  protected:
+    Stream *_serial;
 
-	virtual void uartFlushInput()
-	{
-		while (_serial->available())
-			_serial->read();
-	}
+    virtual void uartFlushInput()
+    {
+        while (_serial->available())
+            _serial->read();
+    }
 
-	virtual void uartWriteBytes(const uint8_t *buf, uint8_t len)
-	{
-		_serial->write(buf, len);
-	}
+    virtual void uartWriteBytes(const uint8_t *buf, uint8_t len)
+    {
+        _serial->write(buf, len);
+    }
 
-	virtual int uartReadBytes(uint8_t *buf, uint8_t len)
-	{
-		return _serial->readBytes(buf, len);
-	}
+    virtual int uartReadBytes(uint8_t *buf, uint8_t len)
+    {
+        return _serial->readBytes(buf, len);
+    }
 
-	virtual uint8_t uartReadByte()
-	{
-		return (uint8_t)(_serial->read());
-	}
+    virtual uint8_t uartReadByte()
+    {
+        return (uint8_t)(_serial->read());
+    }
 
-	virtual int uartBytesAvailable()
-	{
-		return _serial->available();
-	}
+    virtual int uartBytesAvailable()
+    {
+        return _serial->available();
+    }
 };
 
 /* Arduino UART interface with external transceiver support :
@@ -376,33 +419,34 @@ protected:
  * Serial must be initialized externally. Serial.setTimeout() must be set to a
  * decent value to avoid blocking for too long if there is a RX error.
  */
-class TMC5160_UART_Transceiver : public TMC5160_UART {
-public:
-	TMC5160_UART_Transceiver(uint8_t txEnablePin = -1, // pin to enable transmission on the external transceiver
-		Stream& serial = Serial, // Serial port to use
-		uint8_t slaveAddress = 0, // TMC5160 slave address (default 0 if NAI is low, 1 if NAI is high)
-		uint32_t fclk = DEFAULT_F_CLK)
-	: TMC5160_UART(serial, slaveAddress, fclk), _txEn(txEnablePin)
-	{
-		pinMode(_txEn, OUTPUT);
-	}
+class TMC5160_UART_Transceiver : public TMC5160_UART
+{
+  public:
+    TMC5160_UART_Transceiver(
+        uint8_t txEnablePin = -1, // pin to enable transmission on the external transceiver
+        Stream &serial = Serial,  // Serial port to use
+        uint8_t slaveAddress = 0, // TMC5160 slave address (default 0 if NAI is low, 1 if NAI is high)
+        uint32_t fclk = DEFAULT_F_CLK)
+        : TMC5160_UART(serial, slaveAddress, fclk), _txEn(txEnablePin)
+    {
+        pinMode(_txEn, OUTPUT);
+    }
 
-protected:
-	void beginTransmission()
-	{
-		// TMC5160_UART::beginTransmission();
-		digitalWrite(_txEn, HIGH);
-	}
+  protected:
+    void beginTransmission()
+    {
+        // TMC5160_UART::beginTransmission();
+        digitalWrite(_txEn, HIGH);
+    }
 
-	void endTransmission()
-	{
-		_serial->flush();
-		digitalWrite(_txEn, LOW);
-	}
+    void endTransmission()
+    {
+        _serial->flush();
+        digitalWrite(_txEn, LOW);
+    }
 
-private:
-	uint8_t _txEn;
+  private:
+    uint8_t _txEn;
 };
-
 
 #endif // TMC5160_H

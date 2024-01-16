@@ -18,7 +18,7 @@ bool TMC5160_UART_Generic::begin(PowerStageParameters &powerParams, MotorParamet
 
 	// TMC5160_Reg::SLAVECONF_Register slaveConf = { 0 };
 	// slaveConf.senddelay = 2; // minimum if more than one slave is present.
-	// writeRegister(TMC5160_Reg::SLAVECONF, slaveConf.value);
+	// writeRegister(TMC5160_Reg::SLAVECONF, slaveConf.bytes);
 
 	bool result = TMC5160::begin(powerParams, motorParams, stepperDirection);
 	setCommunicationMode(oldMode);
@@ -58,8 +58,6 @@ uint32_t TMC5160_UART_Generic::readRegister(uint8_t address, ReadStatus *status)
 
 	if (status != nullptr)
 		*status = readStatus;
-
-	_lastRegisterReadSuccess = (readStatus == SUCCESS);
 
 	return data;
 }
@@ -133,7 +131,7 @@ void TMC5160_UART_Generic::setSlaveAddress(uint8_t slaveAddress, bool NAI)
 	slaveConf.senddelay = 2; // minimum if more than one slave is present.
 	slaveConf.slaveaddr = constrain(NAI ? slaveAddress-1 : slaveAddress, 0, 253); //NB : if NAI is high SLAVE_ADDR is incremented.
 
-	writeRegister(TMC5160_Reg::SLAVECONF, slaveConf.value);
+	writeRegister(TMC5160_Reg::SLAVECONF, slaveConf.bytes);
 
 	_slaveAddress = NAI ? slaveConf.slaveaddr+1 : slaveConf.slaveaddr;
 }

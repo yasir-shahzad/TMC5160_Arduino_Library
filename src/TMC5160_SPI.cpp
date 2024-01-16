@@ -29,64 +29,32 @@ void TMC5160_SPI::_endTransaction()
 
 uint32_t TMC5160_SPI::readRegister(uint8_t address)
 {
-	// request the read for the address
-	_beginTransaction();
-	_spi->transfer(address);
-	_spi->transfer(0x00);
-	_spi->transfer(0x00);
-	_spi->transfer(0x00);
-	_spi->transfer(0x00);
-	_endTransaction();
+    _beginTransaction();
+    _spi->transfer(address);
 
-	// skip a beat
-	#define nop() asm volatile("nop")
-	nop();
-	nop();
-	nop();
+    uint32_t value = 0;
+    for (int8_t shift = 24; shift >= 0; shift -= 8) {
+        value |= (uint32_t)_spi->transfer(0x00) << shift;
+    }
+    _endTransaction();
 
-	// read it in the second cycle
-	_beginTransaction();
-	_spi->transfer(address);
-	uint32_t value = 0;
-	value |= (uint32_t)_spi->transfer(0x00) << 24;
-	value |= (uint32_t)_spi->transfer(0x00) << 16;
-	value |= (uint32_t)_spi->transfer(0x00) << 8;
-	value |= (uint32_t)_spi->transfer(0x00);
-	_endTransaction();
-
-	_lastRegisterReadSuccess = true; // In SPI mode there is no way to know if the TMC5130 is plugged...
-
-	return value;
+    return value;
 }
+
 
 uint8_t TMC5160_SPI::writeRegister(uint8_t address, uint32_t data)
 {
-	// address register
-	_beginTransaction();
-	uint8_t status = _spi->transfer(address | WRITE_ACCESS);
-
-	// send new register value
-	_spi->transfer((data & 0xFF000000) >> 24);
-	_spi->transfer((data & 0xFF0000) >> 16);
-	_spi->transfer((data & 0xFF00) >> 8);
-	_spi->transfer(data & 0xFF);
-	_endTransaction();
-
-	return status;
-}
-
-
-uint8_t TMC5160_SPI::readStatus()
-{
-    // read general config
+    // address register
     _beginTransaction();
-    uint8_t status = _spi->transfer(TMC5160_Reg::GCONF);
-    // send dummy data
-    _spi->transfer(0x00);
-    _spi->transfer(0x00);
-    _spi->transfer(0x00);
-    _spi->transfer(0x00);
+    uint8_t status = _spi->transfer(address | WRITE_ACCESS);
+
+    // send new register value
+    for (int8_t shift = 24; shift >= 0; shift -= 8) {
+        _spi->transfer((data >> shift) & 0xFF);
+    }
     _endTransaction();
 
     return status;
 }
+
+
