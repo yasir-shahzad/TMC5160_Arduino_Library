@@ -6,36 +6,36 @@
 #include <Arduino.h>
 #include <SPI.h>
 
+enum MotorDirection
+{
+    NORMAL_MOTOR_DIRECTION = 0x00,
+    INVERSE_MOTOR_DIRECTION = 0x1
+};
+enum RampMode
+{
+    POSITIONING_MODE,
+    VELOCITY_MODE,
+    HOLD_MODE
+};
+
+enum DriverStatus
+{
+    OK,        // No error condition
+    CP_UV,     // Charge pump undervoltage
+    S2VSA,     // Short to supply phase A
+    S2VSB,     // Short to supply phase B
+    S2GA,      // Short to ground phase A
+    S2GB,      // Short to ground phase B
+    OT,        // Overtemperature (error)
+    OTHER_ERR, // GSTAT drv_err is set but none of the above conditions is found.
+    OTPW       // Overtemperature pre warning
+};
+
 class TMC5160
 {
   public:
     static constexpr uint8_t IC_VERSION = 0x30;
     static constexpr uint32_t DEFAULT_F_CLK = 12000000; // Typical internal clock frequency in Hz.
-
-    enum MotorDirection
-    {
-        NORMAL_MOTOR_DIRECTION = 0x00,
-        INVERSE_MOTOR_DIRECTION = 0x1
-    };
-    enum RampMode
-    {
-        POSITIONING_MODE,
-        VELOCITY_MODE,
-        HOLD_MODE
-    };
-
-    enum DriverStatus
-    {
-        OK,        // No error condition
-        CP_UV,     // Charge pump undervoltage
-        S2VSA,     // Short to supply phase A
-        S2VSB,     // Short to supply phase B
-        S2GA,      // Short to ground phase A
-        S2GB,      // Short to ground phase B
-        OT,        // Overtemperature (error)
-        OTHER_ERR, // GSTAT drv_err is set but none of the above conditions is found.
-        OTPW       // Overtemperature pre warning
-    };
 
     struct PowerStageParameters
     {
@@ -68,8 +68,7 @@ class TMC5160
 
     virtual bool begin(const PowerStageParameters &powerParams, const MotorParameters &motorParams,
                        MotorDirection stepperDirection /*=NORMAL_MOTOR_DIRECTION*/);
-    void end();
-    void setcurrent(uint16_t gS);
+
     // TODO(yasir): stealthChop tuning procedure
 
     virtual uint32_t readRegister(uint8_t address) = 0; // addresses are from TMC5160.h
@@ -107,11 +106,11 @@ class TMC5160
     bool isTargetPositionReached(void); // Return true if the target position has been reached
     bool isTargetVelocityReached(void); // Return true if the target velocity has been reached
 
-    void stop(); // Stop the current motion according to the set ramp mode and motion parameters. The max speed and
-                 // start speed are set to 0 but the target position stays unchanged.
+    void terminateRampEarly(); // Stop the current motion according to the set ramp mode and motion parameters. The max
+                               // speed and start speed are set to 0 but the target position stays unchanged.
 
-    void disable(); // Disable the driver, all bridges off
-    void enable();  // Enable the driver
+    void disableDriver(); // Disable the driver, all bridges off
+    void enableDriver();  // Enable the driver
 
     // TODO chopper config functions ?
     bool isIcRest();
@@ -181,15 +180,13 @@ class TMC5160
      */
     void setShortProtectionLevels(int s2vsLevel, int s2gLevel, int shortFilter, int shortDelay = 0);
 
-    void setStealthChop(void);
-    void setVelocityMode(void);
-    void setDCStep(void);
-    void setStealthChop(void);
-    void setSpreadCycle(void);
+    void setStealthChop();
+    void setVelocityMode();
+    void setDCStep();
+    void setSpreadCycle();
     void setEncoder(int counts);
     void invertDriver(bool invert);
     void setCurrentMilliamps(int mA);
-    // setmicrostepping
     void setMicrosteps(uint8_t microsteps);
 
   protected:
@@ -280,9 +277,7 @@ class TMC5160_UART_Generic : public TMC5160
     virtual bool begin(PowerStageParameters &powerParams, MotorParameters &motorParams,
                        MotorDirection stepperDirection /*=NORMAL_MOTOR_DIRECTION*/);
 
-    uint32_t readRegister(
-        uint8_t address,
-        ReadStatus *status); // addresses are from TMC5160.h. Pass an optional status pointer to detect failures.
+    uint32_t readRegister(uint8_t address, ReadStatus *status);
     uint32_t readRegister(uint8_t address)
     {
         return readRegister(address, nullptr);
@@ -323,7 +318,6 @@ class TMC5160_UART_Generic : public TMC5160
     CommunicationMode _currentMode;
     uint8_t _transmissionCounter;
 
-    /* Read / write fail statistics */
     uint32_t _readAttemptsCounter;
     uint32_t _readSuccessfulCounter;
     uint32_t _writeAttemptsCounter;

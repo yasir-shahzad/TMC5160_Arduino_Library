@@ -84,12 +84,6 @@ bool TMC5160::begin(const PowerStageParameters &powerParams, const MotorParamete
     return (retVal);
 }
 
-void TMC5160::end()
-{
-    // no-op, just stop talking....
-    ; // FIXME: try and shutdown motor/chips?
-}
-
 
 void TMC5160::setRampMode(TMC5160::RampMode mode)
 {
@@ -286,14 +280,14 @@ bool TMC5160::isTargetVelocityReached(void)
     return rampStatus.velocity_reached ? true : false;
 }
 
-void TMC5160::stop()
+void TMC5160::terminateRampEarly()
 {
     // §14.2.4 Early Ramp Termination option b)
     writeRegister(TMC5160_Reg::VSTART, 0);
     writeRegister(TMC5160_Reg::VMAX, 0);
 }
 
-void TMC5160::disable()
+void TMC5160::disableDriver()
 {
     TMC5160_Reg::CHOPCONF_Register chopconf = {0};
     chopconf.bytes = _chopConf.bytes;
@@ -301,14 +295,12 @@ void TMC5160::disable()
     writeRegister(TMC5160_Reg::CHOPCONF, chopconf.bytes);
 }
 
-void TMC5160::enable()
+void TMC5160::enableDriver()
 {
     writeRegister(TMC5160_Reg::CHOPCONF, _chopConf.bytes);
 }
-void TMC5160::setcurrent(uint16_t gS)
-{
-    writeRegister(TMC5160_Reg::GLOBAL_SCALER, constrain(gS, 32, 256));
-}
+
+
 bool TMC5160::isIcRest()
 {
     TMC5160_Reg::GSTAT_Register gstat = {0};
