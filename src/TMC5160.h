@@ -2,7 +2,7 @@
 #ifndef TMC5160_H
 #define TMC5160_H
 
-#include "TMC5160_registers.h"
+#include "TMC5160_Register.h"
 #include <Arduino.h>
 #include <SPI.h>
 

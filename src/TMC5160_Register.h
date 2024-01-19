@@ -2,6 +2,7 @@
 
 #ifndef TMC5160_REGISTERS_H
 #define TMC5160_REGISTERS_H
+#include "arduino.h"
 
   /* Register addresses */
   enum {
@@ -343,7 +344,7 @@ union CHOPCONF_Register {
     };
     uint32_t bytes;
 };
-CHOPCONF_Register chopConf
+CHOPCONF_Register chopConf;
 
 // coolStep Smart Current Control and StallGuard2 Configuration
 const static uint8_t ADDRESS_COOLCONF = 0x6D;
@@ -451,12 +452,12 @@ union PWM_AUTO_Register {
 };
 
 // Register Field Values
-enum RAMPMODE_Values {
-    POSITIONING_MODE  = 0x00,   ///< Using all A, D, and V parameters
-    VELOCITY_MODE_POS = 0x01,   ///< Positive VMAX, using AMAX acceleration
-    VELOCITY_MODE_NEG = 0x02,   ///< Negative VMAX, using AMAX acceleration
-    HOLD_MODE         = 0x03    ///< Velocity remains unchanged, unless a stop event occurs
-};
+// enum RAMPMODE_Values {
+//     POSITIONING_MODE  = 0x00,   ///< Using all A, D, and V parameters
+//     VELOCITY_MODE_POS = 0x01,   ///< Positive VMAX, using AMAX acceleration
+//     VELOCITY_MODE_NEG = 0x02,   ///< Negative VMAX, using AMAX acceleration
+//     HOLD_MODE         = 0x03    ///< Velocity remains unchanged, unless a stop event occurs
+// };
 
 enum PWMCONF_freewheel_Values {
     FREEWHEEL_NORMAL   = 0x00, ///< Normal operation

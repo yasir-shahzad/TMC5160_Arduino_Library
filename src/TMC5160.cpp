@@ -73,7 +73,7 @@ bool TMC5160::begin(const PowerStageParameters &powerParams, const MotorParamete
 }
 
 
-void TMC5160::setRampMode(TMC5160::RampMode mode)
+void TMC5160::setRampMode(RampMode mode)
 {
     switch (mode)
     {
@@ -298,7 +298,8 @@ bool TMC5160::isIcRest()
         return false;
     }
 }
-TMC5160::DriverStatus TMC5160::getDriverStatus()
+
+DriverStatus TMC5160::getDriverStatus()
 {
     globalStatus.bytes = readRegister(GSTAT);
     drvStatus.bytes = readRegister(DRV_STATUS);
@@ -496,7 +497,7 @@ void TMC5160::setCurrentMilliamps(uint16_t Irms) {
         Serial.println("GlobalScaler: " + String(globalScaler));
         Serial.println("cs: " + String(cs));
         writeRegister(GLOBAL_SCALER, constrain(globalScaler, 32, 256));
-        writeRegister(IHOLD_IRUN, iholdrun_.value);
+        writeRegister(IHOLD_IRUN, iholdrun.bytes);
     } else {
         // TODO(yasir): just for testing have to improve it with return values or some error handling
         Serial.println("invalid current parameters: "+String(Irms));
