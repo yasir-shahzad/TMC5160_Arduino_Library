@@ -3,10 +3,6 @@
 #ifndef TMC5160_REGISTERS_H
 #define TMC5160_REGISTERS_H
 
-#include "Bitfield.h"
-
-namespace TMC5160_Reg {
-
   /* Register addresses */
   enum {
     /* General configuration registers */
@@ -237,7 +233,6 @@ union IHOLD_IRUN_Register {
     };
     uint32_t bytes;
 };
-
 IHOLD_IRUN_Register iholdrun;  // Create a variable of the IHOLD_IRUN_Register type
 
 
@@ -261,6 +256,8 @@ union SW_MODE_Register {
     };
     uint32_t bytes;
 };
+
+SW_MODE_Register switchMode;
 
 // Ramp Status and Switch Event Status
 const static uint8_t ADDRESS_RAMP_STAT = 0x35;
@@ -365,9 +362,11 @@ union COOLCONF_Register {
     };
     uint32_t bytes;
 };
+COOLCONF_Register coolConf;
 
 // dcStep Automatic Commutation Configuration Register
 const static uint8_t ADDRESS_DCCTRL = 0x6E;
+
 union DCCTRL_Register {
     struct {
         uint32_t dc_time   : 10; ///< Upper PWM on time limit for commutation
@@ -380,6 +379,7 @@ union DCCTRL_Register {
 
 // stallGuard2 Value and Driver Error Flags
 const static uint8_t ADDRESS_DRV_STATUS = 0x6F;
+
 union DRV_STATUS_Register {
     struct {
         uint32_t sg_result  : 9;   ///< stallGuard2 result or motor temperature estimation in standstill
@@ -406,6 +406,7 @@ DRV_STATUS_Register drvStatus;
 
 // stealthChop Voltage PWM Mode Chopper Configuration
 const static uint8_t ADDRESS_PWMCONF = 0x70;
+
 union PWMCONF_Register {
     struct {
         uint32_t pwm_ofs       : 8;   ///< User-defined PWM amplitude (offset)
@@ -425,6 +426,7 @@ PWMCONF_Register pwmconf;
 
 // Results of stealthChop Amplitude Regulator
 const static uint8_t ADDRESS_PWM_SCALE = 0x71;
+
 union PWM_SCALE_Register {
     struct {
         uint32_t pwm_scale_sum  : 8;  ///< Actual PWM duty cycle
@@ -437,6 +439,7 @@ union PWM_SCALE_Register {
 
 // stealthChop Automatically Generated Values Read Out
 const static uint8_t ADDRESS_PWM_AUTO = 0x72;
+
 union PWM_AUTO_Register {
     struct {
         uint32_t pwm_ofs_auto  : 8;  ///< Automatically determined offset value
@@ -468,7 +471,5 @@ enum ENCMODE_sensitivity_Values {
     ENCODER_N_FALLING_EDGE  = 0x02, ///< N channel active when the N event is de-activated
     ENCODER_N_BOTH_EDGES    = 0x03  ///< N channel active on N event activation and de-activation
 };
-
-}
 
 #endif // TMC5160_REGISTERS_H

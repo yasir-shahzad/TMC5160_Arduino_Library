@@ -51,8 +51,8 @@ class TMC5160
         uint16_t globalScaler = 32; // global current scaling (32 to 256)
         uint8_t irun = 16;          // motor run current (0 to 31). For best performance don't set lower than 16
         uint8_t ihold = 0;          // standstill current (0 to 31). Set 70% of irun or lower.
-        TMC5160_Reg::PWMCONF_freewheel_Values freewheeling =
-            TMC5160_Reg::FREEWHEEL_NORMAL; // Freewheeling / passive braking of ihold = 0
+        PWMCONF_freewheel_Values freewheeling =
+            FREEWHEEL_NORMAL; // Freewheeling / passive braking of ihold = 0
         uint8_t pwmOfsInitial = 30;        // initial stealthChop PWM amplitude offset (0-255)
         uint8_t pwmGradInitial = 0;        // initial stealthChop velocity dependent gradient for PWM amplitude
     };
@@ -133,7 +133,7 @@ class TMC5160
      * and B polarities to validate a N event aActiveHigh : choose A signal polarity (true for active high) to validate
      * a N event bActiveHigh : choose B signal polarity (true for active high) to validate a N event
      */
-    void setEncoderIndexConfiguration(TMC5160_Reg::ENCMODE_sensitivity_Values sensitivity, bool nActiveHigh = true,
+    void setEncoderIndexConfiguration(ENCMODE_sensitivity_Values sensitivity, bool nActiveHigh = true,
                                       bool ignorePol = true, bool aActiveHigh = false, bool bActiveHigh = false);
 
     /* Enable/disable encoder and position latching on each encoder N event (on each revolution)
@@ -179,7 +179,7 @@ class TMC5160
     uint32_t _fclk;
     RampMode _currentRampMode;
     static constexpr uint16_t _uStepCount = 256; // Number of microsteps per step
-    TMC5160_Reg::CHOPCONF_Register _chopConf = {
+    CHOPCONF_Register _chopConf = {
         0}; // CHOPCONF register (saved here to be restored when disabling / enabling driver)
 
     // Referring to Topic 12.1 on Page 81 of Datasheet Version 1.17 for Real-world Unit Conversions
