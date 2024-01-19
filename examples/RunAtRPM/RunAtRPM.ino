@@ -1,7 +1,7 @@
 
 
 //#include <Arduino.h>
-#include "src/TMC5160.h"
+#include "TMC5160.h"
 
 const uint8_t SPI_CS = SS;      // CS pin in SPI mode
 const uint8_t SPI_DRV_ENN = 7;  // DRV_ENN pin in SPI mode
@@ -31,7 +31,7 @@ void setup() {
   motorParams.ihold = 16;
 
   SPI.begin();
-  if (!motor.begin(powerStageParams, motorParams, TMC5160::NORMAL_MOTOR_DIRECTION)) {
+  if (!motor.begin(powerStageParams, motorParams, NORMAL_MOTOR_DIRECTION)) {
  
     Serial.println("TMC5160 not detected, Please check the wiring diagram");
   } else {
@@ -39,10 +39,10 @@ void setup() {
   }
 
   // ramp definition
-  motor.setRampMode(TMC5160::VELOCITY_MODE);
+  motor.setRampMode(VELOCITY_MODE);
   motor.setMaxSpeed(0);  // tics/sec  1rpm
   motor.setAcceleration(1500);
-  //motor.writeRegister(TMC5160_Reg::TPWMTHRS, 0);
+  //motor.writeRegister(TPWMTHRS, 0);
   //motor.setModeChangeSpeeds(100, 10, 10);
 
   //Serial.println("starting up");
@@ -100,8 +100,8 @@ void loop() {
   // delay(delayTime);
 
   if(motor.isIcRest()) {
-      motor.begin(powerStageParams, motorParams, TMC5160::NORMAL_MOTOR_DIRECTION);
-        motor.setRampMode(TMC5160::VELOCITY_MODE);
+      motor.begin(powerStageParams, motorParams, NORMAL_MOTOR_DIRECTION);
+        motor.setRampMode(VELOCITY_MODE);
   motor.setMaxSpeed(0);  // tics/sec  1rpm
   motor.setAcceleration(1500);
   }
