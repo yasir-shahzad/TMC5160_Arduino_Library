@@ -483,7 +483,6 @@ void TMC5160::setEncoderIndexConfiguration(TMC5160_Reg::ENCMODE_sensitivity_Valu
 
 void TMC5160::setEncoderLatching(bool enabled)
 {
-    TMC5160_Reg::ENCMODE_Register encmode = {0};
     encmode.bytes = readRegister(TMC5160_Reg::ENCMODE);
 
     encmode.latch_x_act = true;
@@ -493,12 +492,10 @@ void TMC5160::setEncoderLatching(bool enabled)
 }
 
 void TMC5160::setCurrentMilliamps(uint16_t Irms) {
-	const int32_t const_val = 11585;
+    const int32_t const_val = 11585;
     const int32_t Vfs = 325;
     const float Rsense = 0.075f;
-    int32_t cs = 31; // Initial CS value
-
-    TMC5160_Reg::IHOLD_IRUN_Register iholdrun_ = {0};
+    int32_t cs = 31;  // Initial CS value
 
     // Calculate GlobalScaler and CS
     uint32_t globalScaler = 0;
@@ -513,12 +510,14 @@ void TMC5160::setCurrentMilliamps(uint16_t Irms) {
     }
 
     if (found) {
-        iholdrun_.irun = cs;
-        iholdrun_.ihold = 16;
-        iholdrun_.iholddelay = 10;
+        ihold_irun.irun = cs;
+        ihold_irun.ihold = 16;
+        ihold_irun.iholddelay = 10;
         // Print the results
         Serial.println("GlobalScaler: " + String(globalScaler));
         Serial.println("cs: " + String(cs));
+        writeRegister(TMC5160_Reg::GLOBAL_SCALER, constrain(globalScaler, 32, 256));
+        writeRegister(TMC5160_Reg::IHOLD_IRUN, iholdrun_.value);
     } else {
         // TODO(yasir): just for testing have to improve it with return values or some error handling
         Serial.println("invalid current parameters: "+String(Irms));

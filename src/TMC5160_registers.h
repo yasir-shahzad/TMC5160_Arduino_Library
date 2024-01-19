@@ -302,6 +302,8 @@ union ENCMODE_Register {
     uint32_t bytes;
 };
 
+ENCMODE_Register encmode;
+
 // Encoder Status Information
 const static uint8_t ADDRESS_ENC_STATUS = 0x3B;
 union ENC_STATUS_Register {
