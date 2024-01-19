@@ -83,7 +83,7 @@ namespace TMC5160_Reg {
 
 // General Configuration Registers
 const static uint8_t ADDRESS_GCONF = 0x00;
-union GlobalConfig {
+union GCONF_Register {
     struct {
         uint32_t recalibrate            : 1; ///< Recalibrate on driver disable due to zero crossing
         uint32_t faststandstill         : 1; ///< Timeout for step execution until standstill detection
@@ -106,13 +106,13 @@ union GlobalConfig {
     };
     uint32_t bytes;
 };
-GlobalConfig global_config_;
+GCONF_Register globalConfig;
 
 
 
 // Global Status Registers
 const static uint8_t ADDRESS_GSTAT = 0x01;
-union GlobalStatus {
+union GSTAT_Register {
     struct
     {
         uint32_t reset    : 1;   ///< Indicates IC reset since last GSTAT read
@@ -122,6 +122,7 @@ union GlobalStatus {
     };
     uint32_t bytes;
 };
+GSTAT_Register globalStatus;
 
 // UART Slave Configuration
 const static uint8_t ADDRESS_SLAVECONF = 0x03;
@@ -194,6 +195,7 @@ union SHORT_CONF_Register {
     };
     uint32_t bytes;
 };
+SHORT_CONF_Register shortConf;
 
 // Driver Configuration
 const static uint8_t ADDRESS_DRV_CONF = 0x0A;
@@ -209,6 +211,7 @@ union DRV_CONF_Register {
     };
     uint32_t bytes;
 };
+DRV_CONF_Register drvconf;
 
 // Offset Calibration Result
 const static uint8_t ADDRESS_OFFSET_READ = 0x0C;
@@ -235,7 +238,7 @@ union IHOLD_IRUN_Register {
     uint32_t bytes;
 };
 
-IHOLD_IRUN_Register ihold_irun;  // Create a variable of the IHOLD_IRUN_Register type
+IHOLD_IRUN_Register iholdrun;  // Create a variable of the IHOLD_IRUN_Register type
 
 
 // Switch Mode Configuration
@@ -282,6 +285,8 @@ union RAMP_STAT_Register {
     uint32_t bytes;
 };
 
+RAMP_STAT_Register rampStatus;
+
 // Encoder Configuration and Use of N Channel
 const static uint8_t ADDRESS_ENCMODE = 0x38;
 union ENCMODE_Register {
@@ -314,6 +319,7 @@ union ENC_STATUS_Register {
     };
     uint32_t bytes;
 };
+ENC_STATUS_Register encstatus;
 
 // Chopper and Driver Configuration
 const static uint8_t ADDRESS_CHOPCONF = 0x6C;
@@ -340,6 +346,7 @@ union CHOPCONF_Register {
     };
     uint32_t bytes;
 };
+CHOPCONF_Register chopConf
 
 // coolStep Smart Current Control and StallGuard2 Configuration
 const static uint8_t ADDRESS_COOLCONF = 0x6D;
@@ -395,6 +402,7 @@ union DRV_STATUS_Register {
     };
     uint32_t bytes;
 };
+DRV_STATUS_Register drvStatus;
 
 // stealthChop Voltage PWM Mode Chopper Configuration
 const static uint8_t ADDRESS_PWMCONF = 0x70;
@@ -413,6 +421,7 @@ union PWMCONF_Register {
     };
     uint32_t bytes;
 };
+PWMCONF_Register pwmconf;
 
 // Results of stealthChop Amplitude Regulator
 const static uint8_t ADDRESS_PWM_SCALE = 0x71;

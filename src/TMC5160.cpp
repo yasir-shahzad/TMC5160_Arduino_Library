@@ -17,31 +17,20 @@ bool TMC5160::begin(const PowerStageParameters &powerParams, const MotorParamete
     bool retVal = false;
 
     /* Clear the reset and charge pump undervoltage flags */
-    TMC5160_Reg::GSTAT_Register gstat = {0};
-    gstat.reset = true;
-    gstat.uv_cp = true;
-    writeRegister(TMC5160_Reg::GSTAT, gstat.bytes);
+    globalStatus.reset = true;
+    globalStatus.uv_cp = true;
+    writeRegister(TMC5160_Reg::GSTAT, globalStatus.bytes);
 
-    TMC5160_Reg::DRV_CONF_Register drvConf = {0};
-    drvConf.drvstrength = constrain(powerParams.drvStrength, 0, 3);
-    drvConf.bbmtime = constrain(powerParams.bbmTime, 0, 24);
-    drvConf.bbmclks = constrain(powerParams.bbmClks, 0, 15);
-    writeRegister(TMC5160_Reg::DRV_CONF, drvConf.bytes);
+    drvconf.drvstrength = constrain(powerParams.drvStrength, 0, 3);
+    drvconf.bbmtime = constrain(powerParams.bbmTime, 0, 24);
+    drvconf.bbmclks = constrain(powerParams.bbmClks, 0, 15);
+    writeRegister(TMC5160_Reg::DRV_CONF, drvconf.bytes);
 
-    writeRegister(TMC5160_Reg::GLOBAL_SCALER, constrain(motorParams.globalScaler, 32, 256));
-
-    // set initial currents and delay
-    TMC5160_Reg::IHOLD_IRUN_Register iholdrun = {0};
-    iholdrun.ihold = constrain(motorParams.ihold, 0, 31);
-    iholdrun.irun = constrain(motorParams.irun, 0, 31);
-    iholdrun.iholddelay = 10;
-    writeRegister(TMC5160_Reg::IHOLD_IRUN, iholdrun.bytes);
-
+    setCurrentMilliamps(1600);
     // TODO(yasir): set short detection / overcurrent protection levels
     setModeChangeSpeeds(170, 0, 0);
 
     // Set initial PWM values
-    TMC5160_Reg::PWMCONF_Register pwmconf = {0};
     pwmconf.bytes = 0xC40C001E;   // Reset default
     pwmconf.pwm_autoscale = true; // Temp to set OFS and GRAD initial values
     if (_fclk > DEFAULT_F_CLK)
@@ -67,13 +56,12 @@ bool TMC5160::begin(const PowerStageParameters &powerParams, const MotorParamete
     writeRegister(TMC5160_Reg::CHOPCONF, _chopConf.bytes);
     setRampMode(VELOCITY_MODE);
 
-    TMC5160_Reg::GCONF_Register gconf = {0};
-    gconf.en_pwm_mode = true; // Enable stealthChop PWM mode
-    gconf.multistep_filt = true;
-    //  gconf.shaft = 0;  // 1 to invert the motor direction
-    writeRegister(TMC5160_Reg::GCONF, gconf.bytes);
+    globalConfig.en_pwm_mode = true; // Enable stealthChop PWM mode
+    globalConfig.multistep_filt = true;
+    //  globalConfig.shaft = 0;  // 1 to invert the motor direction
+    writeRegister(TMC5160_Reg::GCONF, globalConfig.bytes);
 
-    if (gconf.bytes == readRegister(TMC5160_Reg::GCONF))
+    if (globalConfig.bytes == readRegister(TMC5160_Reg::GCONF))
     {
         retVal = true;
     }
@@ -194,7 +182,7 @@ void TMC5160::setCurrentPosition(float position, bool updateEncoderPos)
 {
     writeRegister(TMC5160_Reg::XACTUAL, (int)(position * (float)_uStepCount));
 
-    if (updateEncoderPos)
+    if (updateEEncoderPos)
     {
         writeRegister(TMC5160_Reg::X_ENC, (int)(position * (float)_uStepCount));
         clearEncoderDeviationFlag();
@@ -263,7 +251,6 @@ void TMC5160::setAccelerations(float maxAccel, float startAccel, float maxDecel,
  */
 bool TMC5160::isTargetPositionReached(void)
 {
-    TMC5160_Reg::RAMP_STAT_Register rampStatus = {0};
     rampStatus.bytes = readRegister(TMC5160_Reg::RAMP_STAT);
     return rampStatus.position_reached ? true : false;
 }
@@ -275,7 +262,6 @@ bool TMC5160::isTargetPositionReached(void)
  */
 bool TMC5160::isTargetVelocityReached(void)
 {
-    TMC5160_Reg::RAMP_STAT_Register rampStatus = {0};
     rampStatus.bytes = readRegister(TMC5160_Reg::RAMP_STAT);
     return rampStatus.velocity_reached ? true : false;
 }
@@ -289,10 +275,9 @@ void TMC5160::terminateRampEarly()
 
 void TMC5160::disable()
 {
-    TMC5160_Reg::CHOPCONF_Register chopconf = {0};
-    chopconf.bytes = _chopConf.bytes;
-    chopconf.toff = 0;
-    writeRegister(TMC5160_Reg::CHOPCONF, chopconf.bytes);
+    chopConf.bytes = _chopConf.bytes;
+    chopConf.toff = 0;
+    writeRegister(TMC5160_Reg::CHOPCONF, chopConf.bytes);
 }
 
 void TMC5160::enable()
@@ -303,9 +288,8 @@ void TMC5160::enable()
 
 bool TMC5160::isIcRest()
 {
-    TMC5160_Reg::GSTAT_Register gstat = {0};
-    gstat.bytes = readRegister(TMC5160_Reg::GSTAT);
-    if (gstat.reset)
+    globalStatus.bytes = readRegister(TMC5160_Reg::GSTAT);
+    if (globalStatus.reset)
     {
         return true;
     }
@@ -316,9 +300,7 @@ bool TMC5160::isIcRest()
 }
 TMC5160::DriverStatus TMC5160::getDriverStatus()
 {
-    TMC5160_Reg::GSTAT_Register gstat = {0};
-    gstat.bytes = readRegister(TMC5160_Reg::GSTAT);
-    TMC5160_Reg::DRV_STATUS_Register drvStatus = {0};
+    globalStatus.bytes = readRegister(TMC5160_Reg::GSTAT);
     drvStatus.bytes = readRegister(TMC5160_Reg::DRV_STATUS);
 
     Serial.print(drvStatus.bytes, BIN);
@@ -337,7 +319,7 @@ TMC5160::DriverStatus TMC5160::getDriverStatus()
     }
     Serial.println("Sg_result:" + String(drvStatus.sg_result));
 
-    if (gstat.uv_cp)
+    if (globalStatus.uv_cp)
         return CP_UV;
     if (drvStatus.s2vsa)
         return S2VSA;
@@ -349,7 +331,7 @@ TMC5160::DriverStatus TMC5160::getDriverStatus()
         return S2GB;
     if (drvStatus.ot)
         return OT;
-    if (gstat.drv_err)
+    if (globalStatus.drv_err)
         return OTHER_ERR;
     if (drvStatus.otpw)
         return OTPW;
@@ -413,7 +395,6 @@ bool TMC5160::setEncoderResolution(int motorSteps, int encResolution, bool inver
     // Check if the binary prescaler gives an exact match
     if ((int)(factor * 65536.0f) * encResolution == motorSteps * _uStepCount * 65536)
     {
-        TMC5160_Reg::ENCMODE_Register encmode = {0};
         encmode.bytes = readRegister(TMC5160_Reg::ENCMODE);
         encmode.enc_sel_decimal = false;
         writeRegister(TMC5160_Reg::ENCMODE, encmode.bytes);
@@ -435,7 +416,6 @@ bool TMC5160::setEncoderResolution(int motorSteps, int encResolution, bool inver
     }
     else
     {
-        TMC5160_Reg::ENCMODE_Register encmode = {0};
         encmode.bytes = readRegister(TMC5160_Reg::ENCMODE);
         encmode.enc_sel_decimal = true;
         writeRegister(TMC5160_Reg::ENCMODE, encmode.bytes);
@@ -469,7 +449,6 @@ bool TMC5160::setEncoderResolution(int motorSteps, int encResolution, bool inver
 void TMC5160::setEncoderIndexConfiguration(TMC5160_Reg::ENCMODE_sensitivity_Values sensitivity, bool nActiveHigh,
                                            bool ignorePol, bool aActiveHigh, bool bActiveHigh)
 {
-    TMC5160_Reg::ENCMODE_Register encmode = {0};
     encmode.bytes = readRegister(TMC5160_Reg::ENCMODE);
 
     encmode.sensitivity = sensitivity;
@@ -510,9 +489,9 @@ void TMC5160::setCurrentMilliamps(uint16_t Irms) {
     }
 
     if (found) {
-        ihold_irun.irun = cs;
-        ihold_irun.ihold = 16;
-        ihold_irun.iholddelay = 10;
+        iholdrun.irun = cs;
+        iholdrun.ihold = 16;
+        iholdrun.iholddelay = 10;
         // Print the results
         Serial.println("GlobalScaler: " + String(globalScaler));
         Serial.println("cs: " + String(cs));
@@ -531,21 +510,20 @@ void TMC5160::setEncoderAllowedDeviation(int steps)
 
 bool TMC5160::isEncoderDeviationDetected()
 {
-    TMC5160_Reg::ENC_STATUS_Register encStatus = {0};
-    encStatus.bytes = readRegister(TMC5160_Reg::ENC_STATUS);
-    return encStatus.deviation_warn;
+
+    encstatus.bytes = readRegister(TMC5160_Reg::ENC_STATUS);
+    return encstatus.deviation_warn;
 }
 
 void TMC5160::clearEncoderDeviationFlag()
 {
-    TMC5160_Reg::ENC_STATUS_Register encStatus = {0};
-    encStatus.deviation_warn = true;
-    writeRegister(TMC5160_Reg::ENC_STATUS, encStatus.bytes);
+
+    encstatus.deviation_warn = true;
+    writeRegister(TMC5160_Reg::ENC_STATUS, encstatus.bytes);
 }
 
 void TMC5160::setShortProtectionLevels(int s2vsLevel, int s2gLevel, int shortFilter, int shortDelay)
 {
-    TMC5160_Reg::SHORT_CONF_Register shortConf = {0};
     shortConf.s2vs_level = constrain(s2vsLevel, 4, 15);
     shortConf.s2g_level = constrain(s2gLevel, 2, 15);
     shortConf.shortfilter = constrain(shortFilter, 0, 3);
