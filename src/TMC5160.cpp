@@ -287,7 +287,7 @@ void TMC5160::terminateRampEarly()
     writeRegister(TMC5160_Reg::VMAX, 0);
 }
 
-void TMC5160::disableDriver()
+void TMC5160::disable()
 {
     TMC5160_Reg::CHOPCONF_Register chopconf = {0};
     chopconf.bytes = _chopConf.bytes;
@@ -295,7 +295,7 @@ void TMC5160::disableDriver()
     writeRegister(TMC5160_Reg::CHOPCONF, chopconf.bytes);
 }
 
-void TMC5160::enableDriver()
+void TMC5160::enable()
 {
     writeRegister(TMC5160_Reg::CHOPCONF, _chopConf.bytes);
 }
@@ -356,6 +356,18 @@ TMC5160::DriverStatus TMC5160::getDriverStatus()
 
     return OK;
 }
+
+//     Serial.println(F("Single device commands available: (line end with \\n)"));
+//     Serial.println(F("h       -- Show this help"));
+//     Serial.println(F("d       -- Disconnect / back to device list"));
+//     Serial.println(F("s       -- Display current device settings"));
+//     Serial.println(F("reg (-i)-- Display current raw register value (with comparison to default)"));
+//     Serial.println(F("def     -- Apply the default settings"));
+//     Serial.println(F("a <val> -- Change the Address"));
+//     Serial.println(F("z <val> -- Set a zero-value"));
+//     Serial.println(F("r       -- Flip the Rotation sign"));
+//     Serial.println(F("t       -- read the current state for testing"));
+//     Serial.println(F("(or blank)"));
 
 const char *TMC5160::getDriverStatusDescription(DriverStatus st)
 {
@@ -478,6 +490,39 @@ void TMC5160::setEncoderLatching(bool enabled)
     encmode.clr_cont = enabled;
 
     writeRegister(TMC5160_Reg::ENCMODE, encmode.bytes);
+}
+
+void TMC5160::setCurrentMilliamps(uint16_t Irms) {
+	const int32_t const_val = 11585;
+    const int32_t Vfs = 325;
+    const float Rsense = 0.075f;
+    int32_t cs = 31; // Initial CS value
+
+    TMC5160_Reg::IHOLD_IRUN_Register iholdrun_ = {0};
+
+    // Calculate GlobalScaler and CS
+    uint32_t globalScaler = 0;
+    bool found = false;
+
+    for (; cs >= 0; cs--) {
+        globalScaler = ((Irms * const_val * Rsense) / ((cs + 1) * Vfs))-1;
+        if (globalScaler == 0 || (globalScaler >= 128 && globalScaler <= 255)) {
+            found = true;
+            break;
+        }
+    }
+
+    if (found) {
+        iholdrun_.irun = cs;
+        iholdrun_.ihold = 16;
+        iholdrun_.iholddelay = 10;
+        // Print the results
+        Serial.println("GlobalScaler: " + String(globalScaler));
+        Serial.println("cs: " + String(cs));
+    } else {
+        // TODO(yasir): just for testing have to improve it with return values or some error handling
+        Serial.println("invalid current parameters: "+String(Irms));
+    }
 }
 
 void TMC5160::setEncoderAllowedDeviation(int steps)

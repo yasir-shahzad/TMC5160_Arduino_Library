@@ -34,6 +34,8 @@ enum DriverStatus
 class TMC5160
 {
   public:
+    TMC5160(uint32_t fclk = DEFAULT_F_CLK);
+    ~TMC5160();
     static constexpr uint8_t IC_VERSION = 0x30;
     static constexpr uint32_t DEFAULT_F_CLK = 12000000; // Typical internal clock frequency in Hz.
 
@@ -55,23 +57,12 @@ class TMC5160
         uint8_t pwmGradInitial = 0;        // initial stealthChop velocity dependent gradient for PWM amplitude
     };
 
-    TMC5160(uint32_t fclk = DEFAULT_F_CLK);
-    ~TMC5160();
 
-    /* Start the motor driver using the specified parameters.
-     * These should be tuned according to the power stage and motor used.
-     * Look in the examples for a config wizard.
-     * powerParams : power stage parameters
-     * motorParams : motor current parameters
-     * stepperDirection : normal / inverted
-     */
 
     virtual bool begin(const PowerStageParameters &powerParams, const MotorParameters &motorParams,
                        MotorDirection stepperDirection /*=NORMAL_MOTOR_DIRECTION*/);
 
-    // TODO(yasir): stealthChop tuning procedure
-
-    virtual uint32_t readRegister(uint8_t address) = 0; // addresses are from TMC5160.h
+    virtual uint32_t readRegister(uint8_t address) = 0;  // addresses are from TMC5160.h
     virtual uint8_t writeRegister(uint8_t address, uint32_t data) = 0;
 
     /* Ramp mode selection :
@@ -79,44 +70,36 @@ class TMC5160
         - Velocity mode : follows VMAX and AMAX. Call setMaxSpeed() AFTER switching to velocity mode.
         - Hold mode : Keep current velocity until a stop event occurs.
     */
-    void setRampMode(RampMode mode);
-
-    float getCurrentPosition(); // Return the current internal position (steps)
-    float getEncoderPosition(); // Return the current position according to the encoder counter (steps)
-    float getLatchedPosition(); // Return the position that was latched on the last ref switch / encoder event (steps)
-    float getLatchedEncoderPosition(); // Return the encoder position that was latched on the last encoder event (steps)
+    void setRampMode(RampMode mode);  //Doxygen
+    float getCurrentPosition();  // Return the current internal position (steps)
+    float getEncoderPosition();  // Return the current position according to the encoder counter (steps)
+    float getLatchedPosition();  // Return the position that was latched on the last ref switch / encoder event (steps)
+    float getLatchedEncoderPosition();  // Return the encoder position that was latched on the last encoder event (steps)
     float getTargetPosition();         // Get the target position (steps)
     float getCurrentSpeed();           // Return the current speed (steps / second)
 
-    void setCurrentPosition(float position,
-                            bool updateEncoderPos = false); // Set the current internal position (steps) and optionally
-                                                            // update the encoder counter as well to keep them in sync.
-    void setTargetPosition(
-        float position);           // Set the target position /!\ Set all other motion profile parameters before
-    void setMaxSpeed(float speed); // Set the max speed VMAX (steps/second)
-    void setRampSpeeds(
-        float startSpeed, float stopSpeed,
-        float transitionSpeed); // Set the ramp start speed VSTART, ramp stop speed VSTOP, acceleration transition speed
-                                // V1 (steps / second). /!\ Set VSTOP >= VSTART, VSTOP >= 0.1
-    void setAcceleration(float maxAccel); // Set the ramp acceleration / deceleration (steps / second^2)
-    void setAccelerations(float maxAccel, float startAccel, float maxDecel,
-                          float finalDecel); // Set the ramp accelerations AMAX, DMAX, A1, D1 (steps / second^2) /!\ Do
-                                             // not set startAccel, finalDecel to 0 even if transitionSpeed = 0
+    void setCurrentPosition(float position, bool updateEncoderPos = false);
+    // update the encoder counter as well to keep them in sync.
+    void setTargetPosition(float position);
+    void setMaxSpeed(float speed);  // Set the max speed VMAX (steps/second)
+    // Set the ramp start speed VSTART, ramp stop speed VSTOP, acceleration transition speed
+    void setRampSpeeds(float startSpeed, float stopSpeed, float transitionSpeed);
+    void setAcceleration(float maxAccel);  // Set the ramp acceleration / deceleration (steps / second^2)
+    void setAccelerations(float maxAccel, float startAccel, float maxDecel, float finalDecel);
 
-    bool isTargetPositionReached(void); // Return true if the target position has been reached
-    bool isTargetVelocityReached(void); // Return true if the target velocity has been reached
+    bool isTargetPositionReached(void);  // Return true if the target position has been reached
+    bool isTargetVelocityReached(void);  // Return true if the target velocity has been reached
 
-    void terminateRampEarly(); // Stop the current motion according to the set ramp mode and motion parameters. The max
-                               // speed and start speed are set to 0 but the target position stays unchanged.
+    void terminateRampEarly();  // Stop the current motion according to the set ramp mode and motion parameters. The max
 
-    void disableDriver(); // Disable the driver, all bridges off
-    void enableDriver();  // Enable the driver
+      // driver must be enabled before use it is disabled by default
+    void setHardwareEnablePin(uint8_t hardware_enable_pin);
+    void enable();
+    void disable();
 
-    // TODO chopper config functions ?
     bool isIcRest();
-    DriverStatus getDriverStatus(); // Get the current driver status (OK / error conditions)
-    static const char *getDriverStatusDescription(
-        DriverStatus st); // Get a human readable description of the given driver status
+    DriverStatus getDriverStatus();  // Get the current driver status (OK / error conditions)
+    static const char *getDriverStatusDescription(DriverStatus st);  // Get a human readable description
 
     /* Set the speeds (in steps/second) at which the internal functions and modes will be turned on or off.
      * Below pwmThrs, "stealthChop" PWM mode is used.
@@ -186,7 +169,7 @@ class TMC5160
     void setSpreadCycle();
     void setEncoder(int counts);
     void invertDriver(bool invert);
-    void setCurrentMilliamps(int mA);
+    void setCurrentMilliamps(uint16_t Irms);
     void setMicrosteps(uint8_t microsteps);
 
   protected:

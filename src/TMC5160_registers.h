@@ -235,6 +235,9 @@ union IHOLD_IRUN_Register {
     uint32_t bytes;
 };
 
+IHOLD_IRUN_Register ihold_irun;  // Create a variable of the IHOLD_IRUN_Register type
+
+
 // Switch Mode Configuration
 const static uint8_t ADDRESS_SW_MODE = 0x34;
 union SW_MODE_Register {
