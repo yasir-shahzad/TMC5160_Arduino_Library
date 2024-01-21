@@ -117,21 +117,18 @@ float TMC5160::getEncoderPosition()
 
 void TMC5160::invertDriver(bool invert)
 {
-    invertMotor = invert;
-
-    uint32_t _GCONF = tmc5160_readInt(TMC5160_GCONF); // dummy or old data
-    _GCONF = tmc5160_readInt(TMC5160_GCONF);
+    globalConfig.bytes = readRegister(GCONF);
 
     if (invert)
     {
-        _GCONF |= (1 << 4);
+        globalConfig.bytes |= (1 << 4);
     }
     else
     {
-        _GCONF &= ~(1 << 4);
+        globalConfig.bytes &= ~(1 << 4);
     }
 
-    tmc5160_writeInt(TMC5160_GCONF, _GCONF);
+    writeRegister(GCONF, globalConfig.bytes);
 }
 
 float TMC5160::getLatchedPosition()
@@ -182,7 +179,7 @@ void TMC5160::setCurrentPosition(float position, bool updateEncoderPos)
 {
     writeRegister(XACTUAL, (int)(position * (float)_uStepCount));
 
-    if (updateEEncoderPos)
+    if (updateEncoderPos)
     {
         writeRegister(X_ENC, (int)(position * (float)_uStepCount));
         clearEncoderDeviationFlag();

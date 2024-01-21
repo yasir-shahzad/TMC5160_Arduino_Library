@@ -452,12 +452,12 @@ union PWM_AUTO_Register {
 };
 
 // Register Field Values
-// enum RAMPMODE_Values {
-//     POSITIONING_MODE  = 0x00,   ///< Using all A, D, and V parameters
-//     VELOCITY_MODE_POS = 0x01,   ///< Positive VMAX, using AMAX acceleration
-//     VELOCITY_MODE_NEG = 0x02,   ///< Negative VMAX, using AMAX acceleration
-//     HOLD_MODE         = 0x03    ///< Velocity remains unchanged, unless a stop event occurs
-// };
+enum RAMPMODE_Values {
+    POSITIONING_MODE1  = 0x00,   ///< Using all A, D, and V parameters
+    VELOCITY_MODE_POS = 0x01,   ///< Positive VMAX, using AMAX acceleration
+    VELOCITY_MODE_NEG = 0x02,   ///< Negative VMAX, using AMAX acceleration
+    HOLD_MODE1         = 0x03    ///< Velocity remains unchanged, unless a stop event occurs
+};
 
 enum PWMCONF_freewheel_Values {
     FREEWHEEL_NORMAL   = 0x00, ///< Normal operation
@@ -473,4 +473,4 @@ enum ENCMODE_sensitivity_Values {
     ENCODER_N_BOTH_EDGES    = 0x03  ///< N channel active on N event activation and de-activation
 };
 
-#endif // TMC5160_REGISTERS_H
+#endif
