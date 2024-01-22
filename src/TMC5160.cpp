@@ -329,46 +329,23 @@ DriverStatus TMC5160::getDriverStatus()
     return OK;
 }
 
-//     Serial.println(F("Single device commands available: (line end with \\n)"));
-//     Serial.println(F("h       -- Show this help"));
-//     Serial.println(F("d       -- Disconnect / back to device list"));
-//     Serial.println(F("s       -- Display current device settings"));
-//     Serial.println(F("reg (-i)-- Display current raw register value (with comparison to default)"));
-//     Serial.println(F("def     -- Apply the default settings"));
-//     Serial.println(F("a <val> -- Change the Address"));
-//     Serial.println(F("z <val> -- Set a zero-value"));
-//     Serial.println(F("r       -- Flip the Rotation sign"));
-//     Serial.println(F("t       -- read the current state for testing"));
-//     Serial.println(F("(or blank)"));
 
-const char *TMC5160::getDriverStatusDescription(DriverStatus st)
-{
-    switch (st)
-    {
-    case OK:
-        return "OK";
-    case CP_UV:
-        return "Charge pump undervoltage";
-    case S2VSA:
-        return "Short to supply phase A";
-    case S2VSB:
-        return "Short to supply phase B";
-    case S2GA:
-        return "Short to ground phase A";
-    case S2GB:
-        return "Short to ground phase B";
-    case OT:
-        return "Overtemperature";
-    case OTHER_ERR:
-        return "Other driver error";
-    case OTPW:
-        return "Overtemperature warning";
-    default:
-        break;
-    }
+void TMC5160::printDriverStatusDescription(DriverStatus st) {
+    Serial.println("Driver Status: ");
 
-    return "Unknown";
+    if (st & OK)        Serial.println("OK ");
+    if (st & CP_UV)     Serial.println("Charge pump undervoltage ");
+    if (st & S2VSA)     Serial.println("Short to supply phase A ");
+    if (st & S2VSB)     Serial.println("Short to supply phase B ");
+    if (st & S2GA)      Serial.println("Short to ground phase A ");
+    if (st & S2GB)      Serial.println("Short to ground phase B ");
+    if (st & OT)        Serial.println("Overtemperature ");
+    if (st & OTHER_ERR) Serial.println("Other driver error ");
+    if (st & OTPW)      Serial.println("Overtemperature warning ");
+
+    Serial.println();
 }
+
 
 void TMC5160::setModeChangeSpeeds(float pwmThrs, float coolThrs, float highThrs)
 {

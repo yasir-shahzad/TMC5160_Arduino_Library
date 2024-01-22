@@ -13,8 +13,6 @@ TMC5160_SPI motor = TMC5160_SPI(SPI_CS);  //Use default SPI peripheral and SPI s
 
 unsigned long start_time=0;
 void setup() {
-  // delay(3000);
-  // USB/debug serial coms
   Serial.begin(115200);
 //  while(!Serial);
 //  delay(1000);
