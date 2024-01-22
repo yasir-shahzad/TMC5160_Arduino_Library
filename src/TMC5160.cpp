@@ -18,15 +18,14 @@ bool TMC5160::begin()
     /* Clear the reset and charge pump undervoltage flags */
     globalStatus.reset = true;
     globalStatus.uv_cp = true;
-    writeRegister(GSTAT, globalStatus.bytes);
+    writeRegister(ADDRESS_GSTAT, globalStatus.bytes);
 
     drvconf.drvstrength = 2;
     drvconf.bbmtime = 0;
     drvconf.bbmclks = 4;
-    writeRegister(DRV_CONF, drvconf.bytes);
+    writeRegister(ADDRESS_DRV_CONF, drvconf.bytes);
 
     setCurrentMilliamps(1600);
-    // TODO(yasir): set short detection / overcurrent protection levels
     setModeChangeSpeeds(170, 0, 0);
 
     // Set initial PWM values
@@ -42,7 +41,7 @@ bool TMC5160::begin()
 
     pwmconf.pwm_autoscale = true;
     pwmconf.pwm_autograd = true;
-    writeRegister(PWMCONF, pwmconf.bytes);
+    writeRegister(ADDRESS_PWMCONF, pwmconf.bytes);
 
     // Recommended settings in quick config guide
     chopConf.toff = 2;
@@ -52,15 +51,15 @@ bool TMC5160::begin()
     chopConf.mres = 0;
     chopConf.chm = 0;
     chopConf.tpfd = 0;
-    writeRegister(CHOPCONF, chopConf.bytes);
+    writeRegister(ADDRESS_CHOPCONF, chopConf.bytes);
     setRampMode(VELOCITY_MODE);
 
     globalConfig.en_pwm_mode = true; // Enable stealthChop PWM mode
     globalConfig.multistep_filt = true;
     //  globalConfig.shaft = 0;  // 1 to invert the motor direction
-    writeRegister(GCONF, globalConfig.bytes);
+    writeRegister(ADDRESS_GCONF, globalConfig.bytes);
 
-    if (globalConfig.bytes == readRegister(GCONF))
+    if (globalConfig.bytes == readRegister(ADDRESS_GCONF))
     {
         retVal = true;
     }
@@ -77,17 +76,17 @@ void TMC5160::setRampMode(RampMode mode)
     switch (mode)
     {
     case POSITIONING_MODE:
-        writeRegister(RAMPMODE, POSITIONING_MODE);
+        writeRegister(ADDRESS_RAMPMODE, POSITIONING_MODE);
         break;
 
     case VELOCITY_MODE:
         setMaxSpeed(
             0); // There is no way to know if we should move in the positive or negative direction => set speed to 0.
-        writeRegister(RAMPMODE, VELOCITY_MODE_POS);
+        writeRegister(ADDRESS_RAMPMODE, VELOCITY_MODE_POS);
         break;
 
     case HOLD_MODE:
-        writeRegister(RAMPMODE, HOLD_MODE);
+        writeRegister(ADDRESS_RAMPMODE, HOLD_MODE);
         break;
     }
 
@@ -96,7 +95,7 @@ void TMC5160::setRampMode(RampMode mode)
 
 float TMC5160::getCurrentPosition()
 {
-    int32_t uStepPos = readRegister(XACTUAL);
+    int32_t uStepPos = readRegister(ADDRESS_XACTUAL);
 
     if ((uint32_t)(uStepPos) == 0xFFFFFFFF)
         return NAN;
@@ -106,7 +105,7 @@ float TMC5160::getCurrentPosition()
 
 float TMC5160::getEncoderPosition()
 {
-    int32_t uStepPos = readRegister(X_ENC);
+    int32_t uStepPos = readRegister(ADDRESS_X_ENC);
 
     if ((uint32_t)(uStepPos) == 0xFFFFFFFF)
         return NAN;
@@ -116,7 +115,7 @@ float TMC5160::getEncoderPosition()
 
 void TMC5160::invertDriver(bool invert)
 {
-    globalConfig.bytes = readRegister(GCONF);
+    globalConfig.bytes = readRegister(ADDRESS_GCONF);
 
     if (invert)
     {
@@ -127,12 +126,12 @@ void TMC5160::invertDriver(bool invert)
         globalConfig.bytes &= ~(1 << 4);
     }
 
-    writeRegister(GCONF, globalConfig.bytes);
+    writeRegister(ADDRESS_GCONF, globalConfig.bytes);
 }
 
 float TMC5160::getLatchedPosition()
 {
-    int32_t uStepPos = readRegister(XLATCH);
+    int32_t uStepPos = readRegister(ADDRESS_XLATCH);
 
     if ((uint32_t)(uStepPos) == 0xFFFFFFFF)
         return NAN;
@@ -142,7 +141,7 @@ float TMC5160::getLatchedPosition()
 
 float TMC5160::getLatchedEncoderPosition()
 {
-    int32_t uStepPos = readRegister(ENC_LATCH);
+    int32_t uStepPos = readRegister(ADDRESS_ENC_LATCH);
 
     if ((uint32_t)(uStepPos) == 0xFFFFFFFF)
         return NAN;
@@ -152,7 +151,7 @@ float TMC5160::getLatchedEncoderPosition()
 
 float TMC5160::getTargetPosition()
 {
-    int32_t uStepPos = readRegister(XTARGET);
+    int32_t uStepPos = readRegister(ADDRESS_XTARGET);
 
     if ((uint32_t)(uStepPos) == 0xFFFFFFFF)
         return NAN;
@@ -162,32 +161,33 @@ float TMC5160::getTargetPosition()
 
 float TMC5160::getCurrentSpeed()
 {
-    uint32_t data = readRegister(VACTUAL);
+    uint32_t data = readRegister(ADDRESS_VACTUAL);
 
     if (data == 0xFFFFFFFF)
         return NAN;
 
-    // Returned data is 24-bits, signed => convert to 32-bits, signed.
-    if (bitRead(data, 23)) // highest bit set => negative value
+    // Convert 24-bit signed integer to 32-bit signed integer
+    if (bitRead(data, 23))  // if negative, sign-extend
         data |= 0xFF000000;
 
     return speedToHz(data);
 }
 
+
 void TMC5160::setCurrentPosition(float position, bool updateEncoderPos)
 {
-    writeRegister(XACTUAL, (int)(position * (float)_uStepCount));
+    writeRegister(ADDRESS_XACTUAL, (int)(position * (float)_uStepCount));
 
     if (updateEncoderPos)
     {
-        writeRegister(X_ENC, (int)(position * (float)_uStepCount));
+        writeRegister(ADDRESS_X_ENC, (int)(position * (float)_uStepCount));
         clearEncoderDeviationFlag();
     }
 }
 
 void TMC5160::setTargetPosition(float position)
 {
-    writeRegister(XTARGET, (int32_t)(position * (float)_uStepCount));
+    writeRegister(ADDRESS_XTARGET, (int32_t)(position * (float)_uStepCount));
 }
 unsigned long Starttime = 0;
 int count = 0;
@@ -198,12 +198,12 @@ void TMC5160::setMaxSpeed(float speed)
         count++;
         if (millis() - Starttime > 3000)
         {
-            writeRegister(GLOBAL_SCALER, constrain(136, 32, 256));
+            writeRegister(ADDRESS_GLOBAL_SCALER, constrain(136, 32, 256));
         }
     }
     if (speed == 0)
     {
-        writeRegister(GLOBAL_SCALER, constrain(174, 32, 256));
+        writeRegister(ADDRESS_GLOBAL_SCALER, constrain(174, 32, 256));
         count = 0;
     }
     if (count == 0)
@@ -211,103 +211,103 @@ void TMC5160::setMaxSpeed(float speed)
         Starttime = millis();
     }
     speed = 1.666666667 * speed;
-    writeRegister(VMAX, speedFromHz(fabs(speed)));
+    writeRegister(ADDRESS_VMAX, speedFromHz(fabs(speed)));
 
     if (_currentRampMode == VELOCITY_MODE)
     {
-        writeRegister(RAMPMODE,
+        writeRegister(ADDRESS_RAMPMODE,
                       speed < 0.0f ? VELOCITY_MODE_NEG : VELOCITY_MODE_POS);
     }
 }
 
 void TMC5160::setRampSpeeds(float startSpeed, float stopSpeed, float transitionSpeed)
 {
-    writeRegister(VSTART, speedFromHz(fabs(startSpeed)));
-    writeRegister(VSTOP, speedFromHz(fabs(stopSpeed)));
-    writeRegister(V_1, speedFromHz(fabs(transitionSpeed)));
+    writeRegister(ADDRESS_VSTART, speedFromHz(fabs(startSpeed)));
+    writeRegister(ADDRESS_VSTOP, speedFromHz(fabs(stopSpeed)));
+    writeRegister(ADDRESS_V_1, speedFromHz(fabs(transitionSpeed)));
 }
 
 void TMC5160::setAcceleration(float maxAccel)
 {
-    writeRegister(AMAX, accelFromHz(fabs(maxAccel)));
+    writeRegister(ADDRESS_AMAX, accelFromHz(fabs(maxAccel)));
 }
 
 void TMC5160::setAccelerations(float maxAccel, float startAccel, float maxDecel, float finalDecel)
 {
-    writeRegister(DMAX, accelFromHz(fabs(maxDecel)));
-    writeRegister(AMAX, accelFromHz(fabs(maxAccel)));
-    writeRegister(A_1, accelFromHz(fabs(startAccel)));
-    writeRegister(D_1, accelFromHz(fabs(finalDecel)));
+    writeRegister(ADDRESS_DMAX, accelFromHz(fabs(maxDecel)));
+    writeRegister(ADDRESS_AMAX, accelFromHz(fabs(maxAccel)));
+    writeRegister(ADDRESS_A_1, accelFromHz(fabs(startAccel)));
+    writeRegister(ADDRESS_D_1, accelFromHz(fabs(finalDecel)));
 }
 
 /**
  *
- * @see Datasheet rev 1.15, section 6.3.2.2 "RAMP_STAT - Ramp & Reference Switch Status Register".
+ * @see Datasheet rev 1.15, section 6.3.2.2 "ADDRESS_RAMP_STAT - Ramp & Reference Switch Status Register".
  * @return true if the target position has been reached, false otherwise.
  */
 bool TMC5160::isTargetPositionReached(void)
 {
-    rampStatus.bytes = readRegister(RAMP_STAT);
+    rampStatus.bytes = readRegister(ADDRESS_RAMP_STAT);
     return rampStatus.position_reached ? true : false;
 }
 
 /**
  *
- * @see Datasheet rev 1.15, section 6.3.2.2 "RAMP_STAT - Ramp & Reference Switch Status Register".
+ * @see Datasheet rev 1.15, section 6.3.2.2 "ADDRESS_RAMP_STAT - Ramp & Reference Switch Status Register".
  * @return true if the target velocity has been reached, false otherwise.
  */
 bool TMC5160::isTargetVelocityReached(void)
 {
-    rampStatus.bytes = readRegister(RAMP_STAT);
+    rampStatus.bytes = readRegister(ADDRESS_RAMP_STAT);
     return rampStatus.velocity_reached ? true : false;
 }
 
 void TMC5160::terminateRampEarly()
 {
     // §14.2.4 Early Ramp Termination option b)
-    writeRegister(VSTART, 0);
-    writeRegister(VMAX, 0);
+    writeRegister(ADDRESS_VSTART, 0);
+    writeRegister(ADDRESS_VMAX, 0);
 }
 
 void TMC5160::disable()
 {
     chopConf.toff = 0;
-    writeRegister(CHOPCONF, chopConf.bytes);
+    writeRegister(ADDRESS_CHOPCONF, chopConf.bytes);
 }
 
 void TMC5160::enable()
 {
-    writeRegister(CHOPCONF, chopConf.bytes);
+    writeRegister(ADDRESS_CHOPCONF, chopConf.bytes);
 }
 
 
 bool TMC5160::isIcRest()
 {
-    globalStatus.bytes = readRegister(GSTAT);
-    return globalStatus.reset;
+    globalStatus.bytes = readRegister(ADDRESS_GSTAT);
+    return globalStatus.reset? true : false;
 }
 
 
 DriverStatus TMC5160::getDriverStatus()
 {
-    globalStatus.bytes = readRegister(GSTAT);
-    drvStatus.bytes = readRegister(DRV_STATUS);
+    globalStatus.bytes = readRegister(ADDRESS_GSTAT);
+    drvStatus.bytes = readRegister(ADDRESS_DRV_STATUS);
 
-    Serial.print(drvStatus.bytes, BIN);
+    // Serial.print(drvStatus.bytes, BIN);
 
-    if (drvStatus.stealth)
-    {
-        Serial.println("stealthchop");
-    }
-    else
-    {
-        Serial.println("speread cycle");
-    }
-    if (drvStatus.stst)
-    {
-        Serial.println("standstill");
-    }
-    Serial.println("Sg_result:" + String(drvStatus.sg_result));
+    // if (drvStatus.stealth)
+    // {
+    //     Serial.println("stealthchop");
+    // }
+    // else
+    // {
+    //     Serial.println("speread cycle");
+    // }
+    // if (drvStatus.stst)
+    // {
+    //     Serial.println("standstill");
+    // }
+    // Serial.println("Sg_result:" + String(drvStatus.sg_result));
 
     if (globalStatus.uv_cp)
         return CP_UV;
@@ -372,10 +372,11 @@ const char *TMC5160::getDriverStatusDescription(DriverStatus st)
 
 void TMC5160::setModeChangeSpeeds(float pwmThrs, float coolThrs, float highThrs)
 {
-    writeRegister(TPWMTHRS, thrsSpeedToTstep(pwmThrs));
-    writeRegister(TCOOLTHRS, thrsSpeedToTstep(coolThrs));
-    writeRegister(THIGH, thrsSpeedToTstep(highThrs));
+    writeRegister(ADDRESS_TPWMTHRS, thrsSpeedToTstep(pwmThrs));
+    writeRegister(ADDRESS_TCOOLTHRS, thrsSpeedToTstep(coolThrs));
+    writeRegister(ADDRESS_THIGH, thrsSpeedToTstep(highThrs));
 }
+
 
 bool TMC5160::setEncoderResolution(int motorSteps, int encResolution, bool inverted)
 {
@@ -385,14 +386,14 @@ bool TMC5160::setEncoderResolution(int motorSteps, int encResolution, bool inver
     // Check if the binary prescaler gives an exact match
     if ((int)(factor * 65536.0f) * encResolution == motorSteps * _uStepCount * 65536)
     {
-        encmode.bytes = readRegister(ENCMODE);
+        encmode.bytes = readRegister(ADDRESS_ENCMODE);
         encmode.enc_sel_decimal = false;
-        writeRegister(ENCMODE, encmode.bytes);
+        writeRegister(ADDRESS_ENCMODE, encmode.bytes);
 
         int32_t encConst = (int)(factor * 65536.0f);
         if (inverted)
             encConst = -encConst;
-        writeRegister(ENC_CONST, encConst);
+        writeRegister(ADDRESS_ENC_CONST, encConst);
 
 #if 0
 		Serial.println("Using binary mode");
@@ -406,9 +407,9 @@ bool TMC5160::setEncoderResolution(int motorSteps, int encResolution, bool inver
     }
     else
     {
-        encmode.bytes = readRegister(ENCMODE);
+        encmode.bytes = readRegister(ADDRESS_ENCMODE);
         encmode.enc_sel_decimal = true;
-        writeRegister(ENCMODE, encmode.bytes);
+        writeRegister(ADDRESS_ENCMODE, encmode.bytes);
 
         int integerPart = floor(factor);
         int decimalPart = (int)((factor - (float)integerPart) * 10000.0f);
@@ -418,7 +419,7 @@ bool TMC5160::setEncoderResolution(int motorSteps, int encResolution, bool inver
             decimalPart = 10000 - decimalPart;
         }
         int32_t encConst = integerPart * 65536 + decimalPart;
-        writeRegister(ENC_CONST, encConst);
+        writeRegister(ADDRESS_ENC_CONST, encConst);
 
 #if 0
 		Serial.println("Using decimal mode");
@@ -439,7 +440,7 @@ bool TMC5160::setEncoderResolution(int motorSteps, int encResolution, bool inver
 void TMC5160::setEncoderIndexConfiguration(ENCMODE_sensitivity_Values sensitivity, bool nActiveHigh,
                                            bool ignorePol, bool aActiveHigh, bool bActiveHigh)
 {
-    encmode.bytes = readRegister(ENCMODE);
+    encmode.bytes = readRegister(ADDRESS_ENCMODE);
 
     encmode.sensitivity = sensitivity;
     encmode.pol_N = nActiveHigh;
@@ -447,17 +448,17 @@ void TMC5160::setEncoderIndexConfiguration(ENCMODE_sensitivity_Values sensitivit
     encmode.pol_A = aActiveHigh;
     encmode.pol_B = bActiveHigh;
 
-    writeRegister(ENCMODE, encmode.bytes);
+    writeRegister(ADDRESS_ENCMODE, encmode.bytes);
 }
 
 void TMC5160::setEncoderLatching(bool enabled)
 {
-    encmode.bytes = readRegister(ENCMODE);
+    encmode.bytes = readRegister(ADDRESS_ENCMODE);
 
     encmode.latch_x_act = true;
     encmode.clr_cont = enabled;
 
-    writeRegister(ENCMODE, encmode.bytes);
+    writeRegister(ADDRESS_ENCMODE, encmode.bytes);
 }
 
 void TMC5160::setCurrentMilliamps(uint16_t Irms) {
@@ -485,8 +486,8 @@ void TMC5160::setCurrentMilliamps(uint16_t Irms) {
         // Print the results
         Serial.println("GlobalScaler: " + String(globalScaler));
         Serial.println("cs: " + String(cs));
-        writeRegister(GLOBAL_SCALER, constrain(globalScaler, 32, 256));
-        writeRegister(IHOLD_IRUN, iholdrun.bytes);
+        writeRegister(ADDRESS_GLOBAL_SCALER, constrain(globalScaler, 32, 256));
+        writeRegister(ADDRESS_IHOLD_IRUN, iholdrun.bytes);
     } else {
         // TODO(yasir): just for testing have to improve it with return values or some error handling
         Serial.println("invalid current parameters: "+String(Irms));
@@ -495,13 +496,13 @@ void TMC5160::setCurrentMilliamps(uint16_t Irms) {
 
 void TMC5160::setEncoderAllowedDeviation(int steps)
 {
-    writeRegister(ENC_DEVIATION, steps * _uStepCount);
+    writeRegister(ADDRESS_ENC_DEVIATION, steps * _uStepCount);
 }
 
 bool TMC5160::isEncoderDeviationDetected()
 {
 
-    encstatus.bytes = readRegister(ENC_STATUS);
+    encstatus.bytes = readRegister(ADDRESS_ENC_STATUS);
     return encstatus.deviation_warn;
 }
 
@@ -509,7 +510,7 @@ void TMC5160::clearEncoderDeviationFlag()
 {
 
     encstatus.deviation_warn = true;
-    writeRegister(ENC_STATUS, encstatus.bytes);
+    writeRegister(ADDRESS_ENC_STATUS, encstatus.bytes);
 }
 
 void TMC5160::setShortProtectionLevels(int s2vsLevel, int s2gLevel, int shortFilter, int shortDelay)
@@ -519,7 +520,7 @@ void TMC5160::setShortProtectionLevels(int s2vsLevel, int s2gLevel, int shortFil
     shortConf.shortfilter = constrain(shortFilter, 0, 3);
     shortConf.shortdelay = constrain(shortDelay, 0, 1);
 
-    writeRegister(SHORT_CONF, shortConf.bytes);
+    writeRegister(ADDRESS_SHORT_CONF, shortConf.bytes);
 }
 
 
@@ -596,7 +597,7 @@ bool TMC5160_UART_Generic::begin()
 
 	// SLAVECONF_Register slaveConf = { 0 };
 	// slaveConf.senddelay = 2; // minimum if more than one slave is present.
-	// writeRegister(SLAVECONF, slaveConf.bytes);
+	// writeRegister(ADDRESS_SLAVECONF, slaveConf.bytes);
 
 	bool result = TMC5160::begin();
 	setCommunicationMode(oldMode);
@@ -660,7 +661,7 @@ uint8_t TMC5160_UART_Generic::writeRegister(uint8_t address, uint32_t data, Read
 				_writeAttemptsCounter++;
 
 				ReadStatus readStatus;
-				uint8_t counter = readRegister(IFCNT, &readStatus) & 0xFF;
+				uint8_t counter = readRegister(ADDRESS_IFCNT, &readStatus) & 0xFF;
 
 				if (readStatus != NO_REPLY)
 					writeStatus = readStatus;
@@ -709,7 +710,7 @@ void TMC5160_UART_Generic::setSlaveAddress(uint8_t slaveAddress, bool NAI)
 	slaveConf.senddelay = 2; // minimum if more than one slave is present.
 	slaveConf.slaveaddr = constrain(NAI ? slaveAddress-1 : slaveAddress, 0, 253); //NB : if NAI is high SLAVE_ADDR is incremented.
 
-	writeRegister(SLAVECONF, slaveConf.bytes);
+	writeRegister(ADDRESS_SLAVECONF, slaveConf.bytes);
 
 	_slaveAddress = NAI ? slaveConf.slaveaddr+1 : slaveConf.slaveaddr;
 }
@@ -724,7 +725,7 @@ void TMC5160_UART_Generic::setCommunicationMode(TMC5160_UART_Generic::Communicat
 	if (mode == RELIABLE_MODE)
 	{
 		//Initialize the 8-bit transmission counter.
-		_transmissionCounter = readRegister(IFCNT) & 0xFF;
+		_transmissionCounter = readRegister(ADDRESS_IFCNT) & 0xFF;
 	}
 }
 

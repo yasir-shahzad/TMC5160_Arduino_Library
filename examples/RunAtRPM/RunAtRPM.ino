@@ -38,7 +38,7 @@ void setup() {
   motor.setRampMode(VELOCITY_MODE);
   motor.setMaxSpeed(0);  // tics/sec  1rpm
   motor.setAcceleration(1500);
-  //motor.writeRegister(TPWMTHRS, 0);
+  //motor.writeRegister(ADDRESS_TPWMTHRS, 0);
   //motor.setModeChangeSpeeds(100, 10, 10);
 
   //Serial.println("starting up");

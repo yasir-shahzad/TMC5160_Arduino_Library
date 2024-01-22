@@ -7,80 +7,9 @@
 #pragma once
 #pragma pack(push, 1)
 
-  /* Register addresses */
-//   enum {
-//     /* General configuration registers */
-//     GCONF             = 0x00, // Global configuration flags
-//     GSTAT             = 0x01, // Global status flags
-//     IFCNT             = 0x02, // UART transmission counter
-//     SLAVECONF         = 0x03, // UART slave configuration
-//     IO_INPUT_OUTPUT   = 0x04, // Read input / write output pins
-//     X_COMPARE         = 0x05, // Position comparison register
-//     OTP_PROG          = 0x06, // OTP programming register
-//     OTP_READ          = 0x07, // OTP read register
-//     FACTORY_CONF      = 0x08, // Factory configuration (clock trim)
-//     SHORT_CONF        = 0x09, // Short detector configuration
-//     DRV_CONF          = 0x0A, // Driver configuration
-//     GLOBAL_SCALER     = 0x0B, // Global scaling of motor current
-//     OFFSET_READ       = 0x0C, // Offset calibration results
 
-//     /* Velocity dependent driver feature control registers */
-//     IHOLD_IRUN        = 0x10, // Driver current control
-//     TPOWERDOWN        = 0x11, // Delay before power down
-//     TSTEP             = 0x12, // Actual time between microsteps
-//     TPWMTHRS          = 0x13, // Upper velocity for stealthChop voltage PWM mode
-//     TCOOLTHRS         = 0x14, // Lower threshold velocity for switching on smart energy coolStep and stallGuard feature
-//     THIGH             = 0x15, // Velocity threshold for switching into a different chopper mode and fullstepping
+//Register address
 
-//     /* Ramp generator motion control registers */
-//     RAMPMODE          = 0x20, // Driving mode (Velocity, Positioning, Hold)
-//     XACTUAL           = 0x21, // Actual motor position
-//     VACTUAL           = 0x22, // Actual  motor  velocity  from  ramp  generator
-//     VSTART            = 0x23, // Motor start velocity
-//     A_1               = 0x24, // First acceleration between VSTART and V1
-//     V_1               = 0x25, // First acceleration/deceleration phase target velocity
-//     AMAX              = 0x26, // Second acceleration between V1 and VMAX
-//     VMAX              = 0x27, // Target velocity in velocity mode
-//     DMAX              = 0x28, // Deceleration between VMAX and V1
-//     D_1               = 0x2A, // Deceleration between V1 and VSTOP
-//       //Attention:  Do  not  set  0  in  positioning  mode, even if V1=0!
-//     VSTOP             = 0x2B, // Motor stop velocity
-//       //Attention: Set VSTOP > VSTART!
-//       //Attention:  Do  not  set  0  in  positioning  mode, minimum 10 recommend!
-//     TZEROWAIT         = 0x2C, // Waiting time after ramping down to zero velocity before next movement or direction inversion can start.
-//     XTARGET           = 0x2D, // Target position for ramp mode
-
-//     /* Ramp generator driver feature control registers */
-//     VDCMIN            = 0x33, // Velocity threshold for enabling automatic commutation dcStep
-//     SW_MODE           = 0x34, // Switch mode configuration
-//     RAMP_STAT         = 0x35, // Ramp status and switch event status
-//     XLATCH            = 0x36, // Ramp generator latch position upon programmable switch event
-
-//     /* Encoder registers */
-//     ENCMODE           = 0x38, // Encoder configuration and use of N channel
-//     X_ENC             = 0x39, // Actual encoder position
-//     ENC_CONST         = 0x3A, // Accumulation constant
-//     ENC_STATUS        = 0x3B, // Encoder status information
-//     ENC_LATCH         = 0x3C, // Encoder position latched on N event
-//     ENC_DEVIATION     = 0x3D, // Maximum number of steps deviation between encoder counter and XACTUAL for deviation warning
-
-//     /* Motor driver registers */
-//     MSLUT_0_7         = 0x60, // Microstep table entries. Add 0...7 for the next registers
-//     MSLUTSEL          = 0x68, // Look up table segmentation definition
-//     MSLUTSTART        = 0x69, // Absolute current at microstep table entries 0 and 256
-//     MSCNT             = 0x6A, // Actual position in the microstep table
-//     MSCURACT          = 0x6B, // Actual microstep current
-//     CHOPCONF          = 0x6C, // Chopper and driver configuration
-//     COOLCONF          = 0x6D, // coolStep smart current control register and stallGuard2 configuration
-//     DCCTRL            = 0x6E, // dcStep automatic commutation configuration register
-//     DRV_STATUS        = 0x6F, // stallGuard2 value and driver error flags
-//     PWMCONF           = 0x70, // stealthChop voltage PWM mode chopper configuration
-//     PWM_SCALE         = 0x71, // Results of stealthChop amplitude regulator.
-//     PWM_AUTO          = 0x72, // Automatically determined PWM config values
-//     LOST_STEPS        = 0x73  // Number of input steps skipped due to dcStep. only with SD_MODE = 1
-//   };
-
-// General configuration registers
 const static uint8_t ADDRESS_GCONF           = 0x00; ///< Global configuration flags
 const static uint8_t ADDRESS_GSTAT           = 0x01; ///< Global status flags
 const static uint8_t ADDRESS_IFCNT           = 0x02; ///< UART transmission counter
@@ -98,42 +27,42 @@ const static uint8_t ADDRESS_OFFSET_READ     = 0x0C; ///< Offset calibration res
 // Velocity dependent driver feature control registers
 const static uint8_t ADDRESS_IHOLD_IRUN = 0x10; ///< Driver current control
 const static uint8_t ADDRESS_TPOWERDOWN = 0x11; ///< Delay before power down
-const static uint8_t ADDRESS_TSTEP = 0x12; ///< Actual time between microsteps
-const static uint8_t ADDRESS_TPWMTHRS = 0x13; ///< Upper velocity for stealthChop voltage PWM mode
-const static uint8_t ADDRESS_TCOOLTHRS = 0x14; ///< Lower threshold velocity for switching on smart energy coolStep and stallGuard feature
-const static uint8_t ADDRESS_THIGH = 0x15; ///< Velocity threshold for switching into a different chopper mode and fullstepping
+const static uint8_t ADDRESS_TSTEP      = 0x12; ///< Actual time between microsteps
+const static uint8_t ADDRESS_TPWMTHRS   = 0x13; ///< Upper velocity for stealthChop voltage PWM mode
+const static uint8_t ADDRESS_TCOOLTHRS  = 0x14; ///< Lower threshold velocity for switching on smart energy coolStep and stallGuard feature
+const static uint8_t ADDRESS_THIGH      = 0x15; ///< Velocity threshold for switching into a different chopper mode and fullstepping
 
 // Ramp generator motion control registers
 const static uint8_t ADDRESS_RAMPMODE = 0x20; ///< Driving mode (Velocity, Positioning, Hold)
-const static uint8_t ADDRESS_XACTUAL = 0x21; ///< Actual motor position
-const static uint8_t ADDRESS_VACTUAL = 0x22; ///< Actual motor velocity from ramp generator
-const static uint8_t ADDRESS_VSTART = 0x23; ///< Motor start velocity
-const static uint8_t ADDRESS_A_1 = 0x24; ///< First acceleration between VSTART and V1
-const static uint8_t ADDRESS_V_1 = 0x25; ///< First acceleration/deceleration phase target velocity
-const static uint8_t ADDRESS_AMAX = 0x26; ///< Second acceleration between V1 and VMAX
-const static uint8_t ADDRESS_VMAX = 0x27; ///< Target velocity in velocity mode
-const static uint8_t ADDRESS_DMAX = 0x28; ///< Deceleration between VMAX and V1
-const static uint8_t ADDRESS_D_1 = 0x2A; ///< Deceleration between V1 and VSTOP
+const static uint8_t ADDRESS_XACTUAL  = 0x21; ///< Actual motor position
+const static uint8_t ADDRESS_VACTUAL  = 0x22; ///< Actual motor velocity from ramp generator
+const static uint8_t ADDRESS_VSTART   = 0x23; ///< Motor start velocity
+const static uint8_t ADDRESS_A_1      = 0x24; ///< First acceleration between ADDRESS_VSTART and V1
+const static uint8_t ADDRESS_V_1      = 0x25; ///< First acceleration/deceleration phase target velocity
+const static uint8_t ADDRESS_AMAX     = 0x26; ///< Second acceleration between V1 and ADDRESS_VMAX
+const static uint8_t ADDRESS_VMAX     = 0x27; ///< Target velocity in velocity mode
+const static uint8_t ADDRESS_DMAX     = 0x28; ///< Deceleration between ADDRESS_VMAX and V1
+const static uint8_t ADDRESS_D_1      = 0x2A; ///< Deceleration between V1 and ADDRESS_VSTOP
 // Attention: Do not set 0 in positioning mode, even if V1=0!
 const static uint8_t ADDRESS_VSTOP = 0x2B; ///< Motor stop velocity
-// Attention: Set VSTOP > VSTART!
+// Attention: Set ADDRESS_VSTOP > ADDRESS_VSTART!
 // Attention: Do not set 0 in positioning mode, minimum 10 recommend!
 const static uint8_t ADDRESS_TZEROWAIT = 0x2C; ///< Waiting time after ramping down to zero velocity before next movement or direction inversion can start.
-const static uint8_t ADDRESS_XTARGET = 0x2D; ///< Target position for ramp mode
+const static uint8_t ADDRESS_XTARGET   = 0x2D; ///< Target position for ramp mode
 
 // Ramp generator driver feature control registers
-const static uint8_t ADDRESS_VDCMIN = 0x33; ///< Velocity threshold for enabling automatic commutation dcStep
-const static uint8_t ADDRESS_SW_MODE = 0x34; ///< Switch mode configuration
+const static uint8_t ADDRESS_VDCMIN    = 0x33; ///< Velocity threshold for enabling automatic commutation dcStep
+const static uint8_t ADDRESS_SW_MODE   = 0x34; ///< Switch mode configuration
 const static uint8_t ADDRESS_RAMP_STAT = 0x35; ///< Ramp status and switch event status
-const static uint8_t ADDRESS_XLATCH = 0x36; ///< Ramp generator latch position upon programmable switch event
+const static uint8_t ADDRESS_XLATCH    = 0x36; ///< Ramp generator latch position upon programmable switch event
 
 // Encoder registers
-const static uint8_t ADDRESS_ENCMODE = 0x38; ///< Encoder configuration and use of N channel
-const static uint8_t ADDRESS_X_ENC = 0x39; ///< Actual encoder position
-const static uint8_t ADDRESS_ENC_CONST = 0x3A; ///< Accumulation constant
+const static uint8_t ADDRESS_ENCMODE    = 0x38; ///< Encoder configuration and use of N channel
+const static uint8_t ADDRESS_X_ENC      = 0x39; ///< Actual encoder position
+const static uint8_t ADDRESS_ENC_CONST  = 0x3A; ///< Accumulation constant
 const static uint8_t ADDRESS_ENC_STATUS = 0x3B; ///< Encoder status information
-const static uint8_t ADDRESS_ENC_LATCH = 0x3C; ///< Encoder position latched on N event
-const static uint8_t ADDRESS_ENC_DEVIATION = 0x3D; ///< Maximum number of steps deviation between encoder counter and XACTUAL for deviation warning
+const static uint8_t ADDRESS_ENC_LATCH  = 0x3C; ///< Encoder position latched on N event
+const static uint8_t ADDRESS_ENC_DEVIATION = 0x3D; ///< Maximum number of steps deviation between encoder counter and ADDRESS_XACTUAL for deviation warning
 
 // Motor driver registers
 const static uint8_t ADDRESS_MSLUT_0_7 = 0x60; ///< Microstep table entries. Add 0...7 for the next registers
@@ -149,8 +78,6 @@ const static uint8_t ADDRESS_PWMCONF = 0x70; ///< stealthChop voltage PWM mode c
 const static uint8_t ADDRESS_PWM_SCALE = 0x71; ///< Results of stealthChop amplitude regulator.
 const static uint8_t ADDRESS_PWM_AUTO = 0x72; ///< Automatically determined PWM config values
 const static uint8_t ADDRESS_LOST_STEPS = 0x73; ///< Number of input steps skipped due to dcStep. only with SD_MODE = 1
-
-
 
 // General Configuration Registers
 union GCONF_Register {
@@ -177,19 +104,17 @@ union GCONF_Register {
     uint32_t bytes;
 };
 
-
 // Global Status Registers
 union GSTAT_Register {
     struct
     {
-        uint32_t reset    : 1;   ///< Indicates IC reset since last GSTAT read
+        uint32_t reset    : 1;   ///< Indicates IC reset since last ADDRESS_GSTAT read
         uint32_t drv_err  : 1;   ///< Indicates driver shutdown due to overtemperature or short circuit
         uint32_t uv_cp    : 1;   ///< Indicates undervoltage on charge pump, disabling the driver
         uint32_t reserved : 29;  ///< Reserved bits for future use
     };
     uint32_t bytes;
 };
-
 
 // UART Slave Configuration
 union SLAVECONF_Register {
@@ -260,7 +185,6 @@ union SHORT_CONF_Register {
 
 
 // Driver Configuration
-// const static uint8_t ADDRESS_DRV_CONF = 0x0A;
 union DRV_CONF_Register {
     struct {
         uint32_t bbmtime     : 5;  ///< Break before make delay (0 to 24)
@@ -276,7 +200,6 @@ union DRV_CONF_Register {
 
 
 // Offset Calibration Result
-// const static uint8_t ADDRESS_OFFSET_READ = 0x0C;
 union OFFSET_READ_Register {
     struct {
         uint32_t phase_b  : 8;  ///< Offset calibration result for phase B
@@ -287,7 +210,6 @@ union OFFSET_READ_Register {
 };
 
 // Driver Current Control
-// const static uint8_t ADDRESS_IHOLD_IRUN = 0x10;
 union IHOLD_IRUN_Register {
     struct {
         uint32_t ihold      : 5;  ///< Standstill current (0=1/32...31=32/32)
@@ -302,7 +224,6 @@ union IHOLD_IRUN_Register {
 
 
 // Switch Mode Configuration
-// const static uint8_t ADDRESS_SW_MODE = 0x34;
 union SW_MODE_Register {
     struct {
         uint32_t stop_l_enable    : 1;  ///< Enable automatic motor stop during active left reference switch input
@@ -310,11 +231,11 @@ union SW_MODE_Register {
         uint32_t pol_stop_l       : 1;  ///< Sets the active polarity of the left reference switch input (1=inverted, low active, a low level on REFL stops the motor)
         uint32_t pol_stop_r       : 1;  ///< Sets the active polarity of the right reference switch input (1=inverted, low active, a low level on REFR stops the motor)
         uint32_t swap_lr          : 1;  ///< Swap the left and the right reference switch inputs
-        uint32_t latch_l_active   : 1;  ///< Activate latching of the position to XLATCH upon an active going edge on REFL
-        uint32_t latch_l_inactive : 1;  ///< Activate latching of the position to XLATCH upon an inactive going edge on REFL
-        uint32_t latch_r_active   : 1;  ///< Activate latching of the position to XLATCH upon an active going edge on REFR
-        uint32_t latch_r_inactive : 1;  ///< Activate latching of the position to XLATCH upon an inactive going edge on REFR
-        uint32_t en_latch_encoder : 1;  ///< Latch encoder position to ENC_LATCH upon reference switch event
+        uint32_t latch_l_active   : 1;  ///< Activate latching of the position to ADDRESS_XLATCH upon an active going edge on REFL
+        uint32_t latch_l_inactive : 1;  ///< Activate latching of the position to ADDRESS_XLATCH upon an inactive going edge on REFL
+        uint32_t latch_r_active   : 1;  ///< Activate latching of the position to ADDRESS_XLATCH upon an active going edge on REFR
+        uint32_t latch_r_inactive : 1;  ///< Activate latching of the position to ADDRESS_XLATCH upon an inactive going edge on REFR
+        uint32_t en_latch_encoder : 1;  ///< Latch encoder position to ADDRESS_ENC_LATCH upon reference switch event
         uint32_t sg_stop          : 1;  ///< Enable stop by stallGuard2 (also available in dcStep mode). Disable to release motor after stop event.
         uint32_t en_softstop      : 1;  ///< Enable soft stop upon a stop event (uses the deceleration ramp settings)
         uint32_t reserved         : 21; ///< Reserved bits for future use
@@ -323,7 +244,6 @@ union SW_MODE_Register {
 };
 
 // Ramp Status and Switch Event Status
-// const static uint8_t ADDRESS_RAMP_STAT = 0x35;
 union RAMP_STAT_Register {
     struct {
         uint32_t status_stop_l     : 1;  ///< Reference switch left status (1=active)
@@ -348,19 +268,18 @@ union RAMP_STAT_Register {
 
 
 // Encoder Configuration and Use of N Channel
-// const static uint8_t ADDRESS_ENCMODE = 0x38;
 union ENCMODE_Register {
     struct {
         uint32_t pol_A           : 1;  ///< Required A polarity for an N channel event (0=neg., 1=pos.)
         uint32_t pol_B           : 1;  ///< Required B polarity for an N channel event (0=neg., 1=pos.)
         uint32_t pol_N           : 1;  ///< Defines active polarity of N (0=low active, 1=high active)
         uint32_t ignore_AB       : 1;  ///< Ignore A and B polarity for N channel event
-        uint32_t clr_cont        : 1;  ///< Always latch or latch and clear X_ENC upon an N event
-        uint32_t clr_once        : 1;  ///< Latch or latch and clear X_ENC on the next N event following the write access
+        uint32_t clr_cont        : 1;  ///< Always latch or latch and clear ADDRESS_X_ENC upon an N event
+        uint32_t clr_once        : 1;  ///< Latch or latch and clear ADDRESS_X_ENC on the next N event following the write access
         uint32_t sensitivity     : 2;  ///< N channel event sensitivity
         uint32_t reserved1       : 1;  ///< Reserved bit
-        uint32_t clr_enc_x       : 1;  ///< Clear encoder counter X_ENC upon N-event
-        uint32_t latch_x_act     : 1;  ///< Also latch XACTUAL position together with X_ENC.
+        uint32_t clr_enc_x       : 1;  ///< Clear encoder counter ADDRESS_X_ENC upon N-event
+        uint32_t latch_x_act     : 1;  ///< Also latch ADDRESS_XACTUAL position together with ADDRESS_X_ENC.
         uint32_t enc_sel_decimal : 1;  ///< Encoder prescaler divisor binary mode (0) / decimal mode (1)
         uint32_t reserved2       : 20; ///< Reserved bits for future use
     };
@@ -370,11 +289,10 @@ union ENCMODE_Register {
 
 
 // Encoder Status Information
-// const static uint8_t ADDRESS_ENC_STATUS = 0x3B;
 union ENC_STATUS_Register {
     struct {
         uint32_t n_event        : 1;  ///< N event detected
-        uint32_t deviation_warn : 1;  ///< Deviation between X_ACTUAL and X_ENC detected
+        uint32_t deviation_warn : 1;  ///< Deviation between X_ACTUAL and ADDRESS_X_ENC detected
         uint32_t reserved       : 30; ///< Reserved bits for future use
     };
     uint32_t bytes;
@@ -382,7 +300,6 @@ union ENC_STATUS_Register {
 
 
 // Chopper and Driver Configuration
-// const static uint8_t ADDRESS_CHOPCONF = 0x6C;
 union CHOPCONF_Register {
     struct {
         uint32_t toff        : 4;  ///< Off time setting controls duration of slow decay phase. 0 : Driver disabled.
@@ -409,7 +326,6 @@ union CHOPCONF_Register {
 
 
 // coolStep Smart Current Control and StallGuard2 Configuration
-// const static uint8_t ADDRESS_COOLCONF = 0x6D;
 union COOLCONF_Register {
     struct {
         uint32_t semin     : 4;  ///< Minimum stallGuard2 value for smart current control and smart current enable
@@ -428,8 +344,6 @@ union COOLCONF_Register {
 
 
 // dcStep Automatic Commutation Configuration Register
-// const static uint8_t ADDRESS_DCCTRL = 0x6E;
-
 union DCCTRL_Register {
     struct {
         uint32_t dc_time   : 10; ///< Upper PWM on time limit for commutation
@@ -441,7 +355,6 @@ union DCCTRL_Register {
 };
 
 // stallGuard2 Value and Driver Error Flags
-// const static uint8_t ADDRESS_DRV_STATUS = 0x6F;
 
 union DRV_STATUS_Register {
     struct {
@@ -468,7 +381,6 @@ union DRV_STATUS_Register {
 
 
 // stealthChop Voltage PWM Mode Chopper Configuration
-// const static uint8_t ADDRESS_PWMCONF = 0x70;
 
 union PWMCONF_Register {
     struct {
@@ -488,7 +400,6 @@ union PWMCONF_Register {
 
 
 // Results of stealthChop Amplitude Regulator
-// const static uint8_t ADDRESS_PWM_SCALE = 0x71;
 
 union PWM_SCALE_Register {
     struct {
@@ -501,7 +412,6 @@ union PWM_SCALE_Register {
 };
 
 // stealthChop Automatically Generated Values Read Out
-// const static uint8_t ADDRESS_PWM_AUTO = 0x72;
 
 union PWM_AUTO_Register {
     struct {
@@ -516,8 +426,8 @@ union PWM_AUTO_Register {
 // Register Field Values
 enum RAMPMODE_Values {
     POSITIONING_MODE1  = 0x00,   ///< Using all A, D, and V parameters
-    VELOCITY_MODE_POS = 0x01,   ///< Positive VMAX, using AMAX acceleration
-    VELOCITY_MODE_NEG = 0x02,   ///< Negative VMAX, using AMAX acceleration
+    VELOCITY_MODE_POS = 0x01,   ///< Positive ADDRESS_VMAX, using ADDRESS_AMAX acceleration
+    VELOCITY_MODE_NEG = 0x02,   ///< Negative ADDRESS_VMAX, using ADDRESS_AMAX acceleration
     HOLD_MODE1         = 0x03    ///< Velocity remains unchanged, unless a stop event occurs
 };
 

@@ -23,7 +23,7 @@ enum DriverStatus
     S2GA,      // Short to ground phase A
     S2GB,      // Short to ground phase B
     OT,        // Overtemperature (error)
-    OTHER_ERR, // GSTAT drv_err is set but none of the above conditions is found.
+    OTHER_ERR, // ADDRESS_GSTAT drv_err is set but none of the above conditions is found.
     OTPW       // Overtemperature pre warning
 };
 
@@ -70,8 +70,8 @@ class TMC5160
     void setCurrentPosition(float position, bool updateEncoderPos = false);
     // update the encoder counter as well to keep them in sync.
     void setTargetPosition(float position);
-    void setMaxSpeed(float speed);  // Set the max speed VMAX (steps/second)
-    // Set the ramp start speed VSTART, ramp stop speed VSTOP, acceleration transition speed
+    void setMaxSpeed(float speed);  // Set the max speed ADDRESS_VMAX (steps/second)
+    // Set the ramp start speed ADDRESS_VSTART, ramp stop speed ADDRESS_VSTOP, acceleration transition speed
     void setRampSpeeds(float startSpeed, float stopSpeed, float transitionSpeed);
     void setAcceleration(float maxAccel);  // Set the ramp acceleration / deceleration (steps / second^2)
     void setAccelerations(float maxAccel, float startAccel, float maxDecel, float finalDecel);
