@@ -170,12 +170,9 @@ void TMC5160::setTargetPosition(float position)
 }
 
 
-unsigned long Starttime = 0;
-int count = 0;
+
 void TMC5160::moveAtVelocity(float speed) {
-    // speed = 1.666666667 * speed;
-    speed = 3.333333334 * speed;
-    writeRegister(ADDRESS_VMAX, speedFromHz(fabs(speed)));
+    writeRegister(ADDRESS_VMAX, min(0x7FFFFF, speedFromHz(fabs(speed)))); // VMAX : 23 bits
 
     if (_currentRampMode == VELOCITY_MODE)
     {
@@ -211,7 +208,7 @@ void TMC5160::setAccelerations(float maxAccel, float startAccel, float maxDecel,
 bool TMC5160::isTargetPositionReached(void)
 {
     rampStatus.bytes = readRegister(ADDRESS_RAMP_STAT);
-    return rampStatus.position_reached ? true : false;
+    return rampStatus.position_reached;
 }
 
 /**
@@ -222,12 +219,11 @@ bool TMC5160::isTargetPositionReached(void)
 bool TMC5160::isTargetVelocityReached(void)
 {
     rampStatus.bytes = readRegister(ADDRESS_RAMP_STAT);
-    return rampStatus.velocity_reached ? true : false;
+    return rampStatus.velocity_reached;
 }
 
-void TMC5160::terminateRampEarly()
+void TMC5160::earlyRampTermination()
 {
-    // §14.2.4 Early Ramp Termination option b)
     writeRegister(ADDRESS_VSTART, 0);
     writeRegister(ADDRESS_VMAX, 0);
 }
@@ -244,10 +240,10 @@ void TMC5160::enable()
 }
 
 
-bool TMC5160::isIcRest()
+bool TMC5160::isResetOccurred()
 {
     globalStatus.bytes = readRegister(ADDRESS_GSTAT);
-    return globalStatus.reset? true : false;
+    return globalStatus.reset;
 }
 
 
@@ -303,11 +299,10 @@ void TMC5160::printDriverStatusDescription(DriverStatus st) {
 
 void TMC5160::setModeChangeSpeeds(float pwmThrs, float coolThrs, float highThrs)
 {
-    writeRegister(ADDRESS_TPWMTHRS, thrsSpeedToTstep(pwmThrs));
-    writeRegister(ADDRESS_TCOOLTHRS, thrsSpeedToTstep(coolThrs));
-    writeRegister(ADDRESS_THIGH, thrsSpeedToTstep(highThrs));
+    writeRegister(ADDRESS_TPWMTHRS, min(0xFFFFF, thrsSpeedToTstep(pwmThrs))); // 20 bits
+    writeRegister(ADDRESS_TCOOLTHRS, min(0xFFFFF, thrsSpeedToTstep(coolThrs)));
+    writeRegister(ADDRESS_THIGH, min(0xFFFFF, thrsSpeedToTstep(highThrs)));
 }
-
 
     /* Set the encoder constant to match the motor and encoder resolutions.
      * This function will determine if the binary or decimal mode should be used
@@ -326,7 +321,6 @@ void TMC5160::setModeChangeSpeeds(float pwmThrs, float coolThrs, float highThrs)
 
 bool TMC5160::setEncoderResolution(int motorSteps, int encResolution, bool inverted)
 {
-    // See §22.2
     float factor = (float)motorSteps * (float)_uStepCount / (float)encResolution;
 
     // Check if the binary prescaler gives an exact match
@@ -421,7 +415,7 @@ void TMC5160::setEncoderLatching(bool enabled)
 }
 
 void TMC5160::setCurrentMilliamps(uint16_t Irms) {
-    const int32_t const_val = 11585;
+    const int32_t const_val = 11585;  //256 * Sqroot(2) * 32
     const int32_t Vfs = 325;
     const float Rsense = 0.075f;
     int32_t cs = 31;  // Initial CS value
@@ -431,7 +425,7 @@ void TMC5160::setCurrentMilliamps(uint16_t Irms) {
     bool found = false;
 
     for (; cs >= 0; cs--) {
-        globalScaler = ((Irms * const_val * Rsense) / ((cs + 1) * Vfs))-1;
+        globalScaler = ((Irms * const_val * Rsense) / ((cs + 1) * Vfs))-1;  //page 74 topic 9
         if (globalScaler == 0 || (globalScaler >= 128 && globalScaler <= 255)) {
             found = true;
             break;
@@ -893,7 +887,7 @@ void TMC5160_UART_Generic::computeCrc(uint8_t *datagram, uint8_t datagramLength)
             currentByte = currentByte >> 1;
         }
     }
-},
+}
 
 // void TMC5160_UART_Generic::computeCrc(uint8_t *datagram, uint8_t datagramLength) {
 //     uint8_t *crc = datagram + (datagramLength - 1);
