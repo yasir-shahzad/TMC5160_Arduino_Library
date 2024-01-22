@@ -1,4 +1,6 @@
-#include <TMC2209.h>
+#include<SPI.h>
+#include <TMC5160.h>
+
 
 // This example will not work on Arduino boards without HardwareSerial ports,
 // such as the Uno, Nano, and Mini.

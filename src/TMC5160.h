@@ -32,25 +32,6 @@ class TMC5160
   public:
     TMC5160(uint32_t fclk = DEFAULT_F_CLK);
     ~TMC5160();
-    static constexpr uint8_t IC_VERSION = 0x30;
-    static constexpr uint32_t DEFAULT_F_CLK = 12000000; // Typical internal clock frequency in Hz.
-
-
-    // struct PowerStageParameters
-    // {
-    //     uint8_t drvStrength = 2; // MOSFET gate driver current (0 to 3)
-    //     uint8_t bbmTime = 0;     // "Break Before Make" duration specified in ns (0 to 24)
-    //     uint8_t bbmClks = 4;     // "Break Before Make" duration specified in clock cycles (0 to 15).
-    // };
-
-    // struct MotorParameters
-    // {
-        // PWMCONF_freewheel_Values freewheeling = FREEWHEEL_NORMAL;
-    //     uint8_t pwmOfsInitial = 30;        // initial stealthChop PWM amplitude offset (0-255)
-    //     uint8_t pwmGradInitial = 0;        // initial stealthChop velocity dependent gradient for PWM amplitude
-    // };
-
-
 
     virtual bool begin();
 
@@ -70,7 +51,7 @@ class TMC5160
     void setCurrentPosition(float position, bool updateEncoderPos = false);
     // update the encoder counter as well to keep them in sync.
     void setTargetPosition(float position);
-    void setMaxSpeed(float speed);  // Set the max speed ADDRESS_VMAX (steps/second)
+    void moveAtVelocity(float speed);  // Set the max speed ADDRESS_VMAX (steps/second)
     // Set the ramp start speed ADDRESS_VSTART, ramp stop speed ADDRESS_VSTOP, acceleration transition speed
     void setRampSpeeds(float startSpeed, float stopSpeed, float transitionSpeed);
     void setAcceleration(float maxAccel);  // Set the ramp acceleration / deceleration (steps / second^2)
@@ -86,71 +67,17 @@ class TMC5160
     void disable();
 
     bool isIcRest();
-    DriverStatus getDriverStatus();  // Get the current driver status (OK / error conditions)
+    DriverStatus getDriverStatus();                      // Get the current driver status (OK / error conditions)
     void printDriverStatusDescription(DriverStatus st);  ///< print human readalbe desccription
-
-    /* Set the speeds (in steps/second) at which the internal functions and modes will be turned on or off.
-     * Below pwmThrs, "stealthChop" PWM mode is used.
-     * Between pwmThrs and highThrs, "spreadCycle" classic mode is used.
-     * Between coolThrs and highThrs, "spreadCycle" is used ; "coolStep" current reduction and "stallGuard" load
-     * measurement can be enabled. Above highThrs, "constant Toff" mode and fullstep mode can be enabled. See the TMC
-     * 5160 datasheet for details and optimization. Setting a speed to 0 will disable this threshold.
-     */
     void setModeChangeSpeeds(float pwmThrs, float coolThrs, float highThrs);
-
-    /* Set the encoder constant to match the motor and encoder resolutions.
-     * This function will determine if the binary or decimal mode should be used
-     * and return false if no exact match could be found (for example for an encoder
-     * with a resolution of 360 and a motor with 200 steps per turn). In this case
-     * the best approximation in decimal mode will be used.
-     *
-     * Params :
-     * 		motorSteps : the number of steps per turn for the motor
-     * 		encResolution : the actual encoder resolution (pulses per turn)
-     * 		inverted : whether the encoder and motor rotations are inverted
-     *
-     * Return :
-     * 		true if an exact match was found, false otherwise
-     */
     bool setEncoderResolution(int motorSteps, int encResolution, bool inverted = false);
-
-    /* Configure the encoder N event context.
-     * Params :
-     * 		sensitivity : set to one of ENCODER_N_NO_EDGE, ENCODER_N_RISING_EDGE, ENCODER_N_FALLING_EDGE,
-     * ENCODER_N_BOTH_EDGES nActiveHigh : choose N signal polarity (true for active high) ignorePol : if true, ignore A
-     * and B polarities to validate a N event aActiveHigh : choose A signal polarity (true for active high) to validate
-     * a N event bActiveHigh : choose B signal polarity (true for active high) to validate a N event
-     */
     void setEncoderIndexConfiguration(ENCMODE_sensitivity_Values sensitivity, bool nActiveHigh = true,
                                       bool ignorePol = true, bool aActiveHigh = false, bool bActiveHigh = false);
-
-    /* Enable/disable encoder and position latching on each encoder N event (on each revolution)
-     * The difference between the 2 positions can then be compared regularly to check
-     * for an external step loss.
-     */
-    void setEncoderLatching(bool enabled);
-
-    /* Set maximum number of steps between internal position and encoder position
-     * before triggering the deviation flag.
-     * Set to 0 to disable. */
-    void setEncoderAllowedDeviation(int steps);
-
-    /* Check if a deviation between internal pos and encoder has been detected */
-    bool isEncoderDeviationDetected();
-
-    /* Clear encoder deviation flag (deviation condition must be handled before) */
-    void clearEncoderDeviationFlag();
-
-    // TODO end stops and stallguard config functions ?
-
-    /* Configure the integrated short protection. Check datasheet for details.
-     * - s2vsLevel : 4 (highest sensitivity) to 15 ; 6 to 8 recommended ; reset default 6
-     * - s2gLevel : 2 (highest sensitivity) to 15 ; 6 to 14 recommended ; reset default 6 ; increase at higher voltage
-     * - shortFilter : 0 to 3 ; reset default 1 ; increase in case of erroneous detection
-     * - shortDelay : 0 to 1 ; reset default 0
-     */
     void setShortProtectionLevels(int s2vsLevel, int s2gLevel, int shortFilter, int shortDelay = 0);
-
+    void setEncoderLatching(bool enabled);
+    void setEncoderAllowedDeviation(int steps);
+    bool isEncoderDeviationDetected();
+    void clearEncoderDeviationFlag();
     void setStealthChop();
     void setVelocityMode();
     void setDCStep();
@@ -161,12 +88,12 @@ class TMC5160
     void setMicrosteps(uint8_t microsteps);
 
   protected:
-    static constexpr uint8_t WRITE_ACCESS = 0x80; // Register write access for spi / uart communication
+    static constexpr uint8_t WRITE_ACCESS = 0x80;  // Register write access for spi / uart communication
 
   private:
     uint32_t _fclk;
     RampMode _currentRampMode;
-    static constexpr uint16_t _uStepCount = 256; // Number of microsteps per step
+    static constexpr uint16_t _uStepCount = 256;  // Number of microsteps per step
 
     GCONF_Register globalConfig;
     RAMP_STAT_Register rampStatus;
@@ -174,7 +101,7 @@ class TMC5160
     GSTAT_Register globalStatus;
     DRV_STATUS_Register drvStatus;
     ENCMODE_Register encmode;
-    IHOLD_IRUN_Register iholdrun; // Create a variable of the IHOLD_IRUN_Register type
+    IHOLD_IRUN_Register iholdrun;  // Create a variable of the IHOLD_IRUN_Register type
     DRV_CONF_Register drvconf;
     PWMCONF_Register pwmconf;
     ENC_STATUS_Register encstatus;
@@ -232,20 +159,12 @@ class TMC5160_SPI : public TMC5160
     void _endTransaction();
 };
 
-
-
-
-
-
-
-
 /* Generic UART interface */
 class TMC5160_UART_Generic : public TMC5160
 {
   public:
     /* Read/write register return codes */
-    enum ReadStatus
-    {
+    enum ReadStatus {
         SUCCESS,
         NO_REPLY,
         INVALID_FORMAT,
@@ -256,8 +175,7 @@ class TMC5160_UART_Generic : public TMC5160
      * retried if necessary, and register reads are retried multiple times in case
      * of failure. In streaming mode, none of these checks are performed and register
      * read / writes are tried only once. Default is Streaming mode. */
-    enum CommunicationMode
-    {
+    enum CommunicationMode {
         RELIABLE_MODE,
         STREAMING_MODE
     };

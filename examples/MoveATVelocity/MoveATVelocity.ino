@@ -1,7 +1,7 @@
 
 
-//#include <Arduino.h>
-#include "TMC5160.h"
+#include<SPI.h>
+#include <TMC5160.h>
 
 const uint8_t SPI_CS = SS;      // CS pin in SPI mode
 const uint8_t SPI_DRV_ENN = 7;  // DRV_ENN pin in SPI mode
@@ -34,7 +34,7 @@ void setup() {
 
   // ramp definition
   motor.setRampMode(VELOCITY_MODE);
-  motor.setMaxSpeed(0);  // tics/sec  1rpm
+  motor.moveAtVelocity(0);  // tics/sec  1rpm
   motor.setAcceleration(1500);
   //motor.writeRegister(ADDRESS_TPWMTHRS, 0);
   //motor.setModeChangeSpeeds(100, 10, 10);
@@ -43,9 +43,9 @@ void setup() {
 
   // Standstill for automatic tuning
 
-  // motor.setMaxSpeed(200);  // tics/sec  1rpm
+  // motor.moveAtVelocity(200);  // tics/sec  1rpm
   // delay(8000);
-  // motor.setMaxSpeed(-200);  //tics/sec  1rpm
+  // motor.moveAtVelocity(-200);  //tics/sec  1rpm
   // delay(8000);
   start_time=millis();
   Serial.print("Starting Current is 2000 mA\n");
@@ -61,33 +61,33 @@ uint32_t delayTime = 15000;
 
 void loop() { 
   // Serial.println("RPM120");
-  // motor.setMaxSpeed(120*multiplyFactor); 
+  // motor.moveAtVelocity(120*multiplyFactor); 
   // delay(delayTime);
   Serial.println("RPM100");
-  motor.setMaxSpeed(100*multiplyFactor); 
+  motor.moveAtVelocity(100*multiplyFactor); 
   // delay(delayTime);
   // Serial.println("RPM80");
-  // motor.setMaxSpeed(80*multiplyFactor); 
+  // motor.moveAtVelocity(80*multiplyFactor); 
   while(1){
 
       motor.getDriverStatus();
       // Serial.println(currentSpeed);
       delay(500);
-      //  motor.setMaxSpeed(0*multiplyFactor);
+      //  motor.moveAtVelocity(0*multiplyFactor);
   }
   delay(delayTime);
   Serial.println("RPM50");
-  motor.setMaxSpeed(50*multiplyFactor); 
+  motor.moveAtVelocity(50*multiplyFactor); 
   delay(delayTime);
   Serial.println("RPM30");
-  motor.setMaxSpeed(30*multiplyFactor); 
+  motor.moveAtVelocity(30*multiplyFactor); 
   delay(delayTime);
-    // motor.setMaxSpeed(100*multiplyFactor); 
+    // motor.moveAtVelocity(100*multiplyFactor); 
   // /delay(delayTime);
   // int vmax = 120;
   // for(int i = 0; i<= vmax; i++)
   // {
-  // motor.setMaxSpeed(i*multiplyFactor); 
+  // motor.moveAtVelocity(i*multiplyFactor); 
   // delay(200);
   // Serial.println(i);
   // }
@@ -96,7 +96,7 @@ void loop() {
   if(motor.isIcRest()) {
       motor.begin();
         motor.setRampMode(VELOCITY_MODE);
-  motor.setMaxSpeed(0);  // tics/sec  1rpm
+  motor.moveAtVelocity(0);  // tics/sec  1rpm
   motor.setAcceleration(1500);
   }
 }
