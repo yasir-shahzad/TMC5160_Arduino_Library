@@ -87,7 +87,7 @@ class TMC5160
 
     bool isIcRest();
     DriverStatus getDriverStatus();  // Get the current driver status (OK / error conditions)
-    static const char *getDriverStatusDescription(DriverStatus st);  // Get a human readable description
+    void printDriverStatusDescription(DriverStatus st);  ///< print human readalbe desccription
 
     /* Set the speeds (in steps/second) at which the internal functions and modes will be turned on or off.
      * Below pwmThrs, "stealthChop" PWM mode is used.
