@@ -10,8 +10,7 @@ uint32_t currentTime = millis();
 TMC5160_SPI motor = TMC5160_SPI(SPI_CS);  //Use default SPI peripheral and SPI settings.
 
   // This sets the motor & driver parameters /!\ run the configWizard for your driver and motor for fine tuning !
-  TMC5160::PowerStageParameters powerStageParams;  // defaults.
-  TMC5160::MotorParameters motorParams;
+
 unsigned long start_time=0;
 void setup() {
   // delay(3000);
@@ -22,27 +21,24 @@ void setup() {
   Serial.print("CS:");
   Serial.println(SPI_CS);
 
-  // pinMode(7, INPUT);
-  // pinMode(8, INPUT);
+
   pinMode(SPI_DRV_ENN, OUTPUT);
   digitalWrite(SPI_DRV_ENN, LOW);  // Active low1
-   motorParams.globalScaler = 136; // Adapt to your driver and motor (check TMC5160 datasheet - "Selecting sense resistors")
-  motorParams.irun = 31;
-  motorParams.ihold = 16;
+
 
   SPI.begin();
-  if (!motor.begin(powerStageParams, motorParams, NORMAL_MOTOR_DIRECTION)) {
- 
-    Serial.println("TMC5160 not detected, Please check the wiring diagram");
-  } else {
-    Serial.println("TMC5160 detected");
+  if (!motor.begin()) {
+      Serial.println("TMC5160 not detected, Please check the wiring diagram");
+  }
+  else {
+      Serial.println("TMC5160 detected");
   }
 
   // ramp definition
   motor.setRampMode(VELOCITY_MODE);
   motor.setMaxSpeed(0);  // tics/sec  1rpm
   motor.setAcceleration(1500);
-  //motor.writeRegister(TPWMTHRS, 0);
+  //motor.writeRegister(ADDRESS_TPWMTHRS, 0);
   //motor.setModeChangeSpeeds(100, 10, 10);
 
   //Serial.println("starting up");
@@ -100,7 +96,7 @@ void loop() {
   // delay(delayTime);
 
   if(motor.isIcRest()) {
-      motor.begin(powerStageParams, motorParams, NORMAL_MOTOR_DIRECTION);
+      motor.begin();
         motor.setRampMode(VELOCITY_MODE);
   motor.setMaxSpeed(0);  // tics/sec  1rpm
   motor.setAcceleration(1500);
