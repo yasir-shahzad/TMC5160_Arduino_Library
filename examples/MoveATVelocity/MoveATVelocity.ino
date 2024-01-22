@@ -34,37 +34,17 @@ void setup() {
 
   // ramp definition
   motor.setRampMode(VELOCITY_MODE);
-  motor.moveAtVelocity(0);  // tics/sec  1rpm
-  motor.setAcceleration(1500);
-  //motor.writeRegister(ADDRESS_TPWMTHRS, 0);
-  //motor.setModeChangeSpeeds(100, 10, 10);
-
-  //Serial.println("starting up");
-
-  // Standstill for automatic tuning
-
-  // motor.moveAtVelocity(200);  // tics/sec  1rpm
-  // delay(8000);
-  // motor.moveAtVelocity(-200);  //tics/sec  1rpm
-  // delay(8000);
-  start_time=millis();
-  Serial.print("Starting Current is 2000 mA\n");
+  motor.moveAtVelocity(400);  // tics/sec  1rpm
+  motor.setAcceleration(500);
+  delay(1000);  //Standstill for automatic tuning
 }
-bool run=0;
-bool countonce=0;
-int speed=1000;
-int value=300;
-
-
-int multiplyFactor = 2;
-uint32_t delayTime = 15000;
 
 void loop() { 
   // Serial.println("RPM120");
   // motor.moveAtVelocity(120*multiplyFactor); 
   // delay(delayTime);
   Serial.println("RPM100");
-  motor.moveAtVelocity(100*multiplyFactor); 
+  motor.moveAtVelocity(100); 
   // delay(delayTime);
   // Serial.println("RPM80");
   // motor.moveAtVelocity(80*multiplyFactor); 
@@ -93,7 +73,7 @@ void loop() {
   // }
   // delay(delayTime);
 
-  if(motor.isIcRest()) {
+  if(motor.isResetOccurred()) {
       motor.begin();
         motor.setRampMode(VELOCITY_MODE);
   motor.moveAtVelocity(0);  // tics/sec  1rpm

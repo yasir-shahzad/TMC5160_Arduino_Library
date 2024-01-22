@@ -9,6 +9,7 @@
 
 static constexpr uint8_t IC_VERSION = 0x30;
 static constexpr uint32_t DEFAULT_F_CLK = 12000000;  ///< Typical internal clock frequency in Hz.
+static constexpr uint16_t _uStepCount = 256;  // Number of microsteps per step
 
 //Register address
 const static uint8_t ADDRESS_GCONF           = 0x00; ///< Global configuration flags
