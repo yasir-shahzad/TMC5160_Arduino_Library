@@ -7,9 +7,10 @@
 #pragma once
 #pragma pack(push, 1)
 
+static constexpr uint8_t IC_VERSION = 0x30;
+static constexpr uint32_t DEFAULT_F_CLK = 12000000;  ///< Typical internal clock frequency in Hz.
 
 //Register address
-
 const static uint8_t ADDRESS_GCONF           = 0x00; ///< Global configuration flags
 const static uint8_t ADDRESS_GSTAT           = 0x01; ///< Global status flags
 const static uint8_t ADDRESS_IFCNT           = 0x02; ///< UART transmission counter
@@ -65,18 +66,18 @@ const static uint8_t ADDRESS_ENC_LATCH  = 0x3C; ///< Encoder position latched on
 const static uint8_t ADDRESS_ENC_DEVIATION = 0x3D; ///< Maximum number of steps deviation between encoder counter and ADDRESS_XACTUAL for deviation warning
 
 // Motor driver registers
-const static uint8_t ADDRESS_MSLUT_0_7 = 0x60; ///< Microstep table entries. Add 0...7 for the next registers
-const static uint8_t ADDRESS_MSLUTSEL = 0x68; ///< Look up table segmentation definition
+const static uint8_t ADDRESS_MSLUT_0_7 = 0x60;  ///< Microstep table entries. Add 0...7 for the next registers
+const static uint8_t ADDRESS_MSLUTSEL = 0x68;   ///< Look up table segmentation definition
 const static uint8_t ADDRESS_MSLUTSTART = 0x69; ///< Absolute current at microstep table entries 0 and 256
-const static uint8_t ADDRESS_MSCNT = 0x6A; ///< Actual position in the microstep table
-const static uint8_t ADDRESS_MSCURACT = 0x6B; ///< Actual microstep current
-const static uint8_t ADDRESS_CHOPCONF = 0x6C; ///< Chopper and driver configuration
-const static uint8_t ADDRESS_COOLCONF = 0x6D; ///< coolStep smart current control register and stallGuard2 configuration
-const static uint8_t ADDRESS_DCCTRL = 0x6E; ///< dcStep automatic commutation configuration register
+const static uint8_t ADDRESS_MSCNT = 0x6A;      ///< Actual position in the microstep table
+const static uint8_t ADDRESS_MSCURACT = 0x6B;   ///< Actual microstep current
+const static uint8_t ADDRESS_CHOPCONF = 0x6C;   ///< Chopper and driver configuration
+const static uint8_t ADDRESS_COOLCONF = 0x6D;   ///< coolStep smart current control register and stallGuard2 configuration
+const static uint8_t ADDRESS_DCCTRL = 0x6E;     ///< dcStep automatic commutation configuration register
 const static uint8_t ADDRESS_DRV_STATUS = 0x6F; ///< stallGuard2 value and driver error flags
-const static uint8_t ADDRESS_PWMCONF = 0x70; ///< stealthChop voltage PWM mode chopper configuration
-const static uint8_t ADDRESS_PWM_SCALE = 0x71; ///< Results of stealthChop amplitude regulator.
-const static uint8_t ADDRESS_PWM_AUTO = 0x72; ///< Automatically determined PWM config values
+const static uint8_t ADDRESS_PWMCONF = 0x70;    ///< stealthChop voltage PWM mode chopper configuration
+const static uint8_t ADDRESS_PWM_SCALE = 0x71;  ///< Results of stealthChop amplitude regulator.
+const static uint8_t ADDRESS_PWM_AUTO = 0x72;   ///< Automatically determined PWM config values
 const static uint8_t ADDRESS_LOST_STEPS = 0x73; ///< Number of input steps skipped due to dcStep. only with SD_MODE = 1
 
 // General Configuration Registers
