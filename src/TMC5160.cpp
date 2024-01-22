@@ -11,8 +11,7 @@ TMC5160::~TMC5160()
     ;
 }
 
-bool TMC5160::begin(const PowerStageParameters &powerParams, const MotorParameters &motorParams,
-                    MotorDirection stepperDirection)
+bool TMC5160::begin()
 {
     bool retVal = false;
 
@@ -21,9 +20,9 @@ bool TMC5160::begin(const PowerStageParameters &powerParams, const MotorParamete
     globalStatus.uv_cp = true;
     writeRegister(GSTAT, globalStatus.bytes);
 
-    drvconf.drvstrength = constrain(powerParams.drvStrength, 0, 3);
-    drvconf.bbmtime = constrain(powerParams.bbmTime, 0, 24);
-    drvconf.bbmclks = constrain(powerParams.bbmClks, 0, 15);
+    drvconf.drvstrength = 2;
+    drvconf.bbmtime = 0;
+    drvconf.bbmclks = 4;
     writeRegister(DRV_CONF, drvconf.bytes);
 
     setCurrentMilliamps(1600);
@@ -37,23 +36,23 @@ bool TMC5160::begin(const PowerStageParameters &powerParams, const MotorParamete
         pwmconf.pwm_freq = 0;
     else
         pwmconf.pwm_freq = 0b01; // recommended : 35kHz with internal typ. 12MHZ clock. 0b01 => 2/683 * f_clk
-    pwmconf.pwm_grad = motorParams.pwmGradInitial;
-    pwmconf.pwm_ofs = motorParams.pwmOfsInitial;
-    pwmconf.freewheel = motorParams.freewheeling;
+    pwmconf.pwm_grad = 0;
+    pwmconf.pwm_ofs =30;
+    pwmconf.freewheel = FREEWHEEL_NORMAL;
 
     pwmconf.pwm_autoscale = true;
     pwmconf.pwm_autograd = true;
     writeRegister(PWMCONF, pwmconf.bytes);
 
     // Recommended settings in quick config guide
-    _chopConf.toff = 2;
-    _chopConf.tbl = 0;
-    _chopConf.hstrt_tfd = 7;
-    _chopConf.hend_offset = 7;
-    _chopConf.mres = 0;
-    _chopConf.chm = 0;
-    _chopConf.tpfd = 0;
-    writeRegister(CHOPCONF, _chopConf.bytes);
+    chopConf.toff = 2;
+    chopConf.tbl = 0;
+    chopConf.hstrt_tfd = 7;
+    chopConf.hend_offset = 7;
+    chopConf.mres = 0;
+    chopConf.chm = 0;
+    chopConf.tpfd = 0;
+    writeRegister(CHOPCONF, chopConf.bytes);
     setRampMode(VELOCITY_MODE);
 
     globalConfig.en_pwm_mode = true; // Enable stealthChop PWM mode
@@ -272,29 +271,22 @@ void TMC5160::terminateRampEarly()
 
 void TMC5160::disable()
 {
-    chopConf.bytes = _chopConf.bytes;
     chopConf.toff = 0;
     writeRegister(CHOPCONF, chopConf.bytes);
 }
 
 void TMC5160::enable()
 {
-    writeRegister(CHOPCONF, _chopConf.bytes);
+    writeRegister(CHOPCONF, chopConf.bytes);
 }
 
 
 bool TMC5160::isIcRest()
 {
     globalStatus.bytes = readRegister(GSTAT);
-    if (globalStatus.reset)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+    return globalStatus.reset;
 }
+
 
 DriverStatus TMC5160::getDriverStatus()
 {
@@ -597,7 +589,7 @@ TMC5160_UART_Generic::TMC5160_UART_Generic(uint8_t slaveAddress, uint32_t fclk)
 
 }
 
-bool TMC5160_UART_Generic::begin(PowerStageParameters &powerParams, MotorParameters &motorParams, MotorDirection stepperDirection)
+bool TMC5160_UART_Generic::begin()
 {
 	CommunicationMode oldMode = _currentMode;
 	setCommunicationMode(RELIABLE_MODE);
@@ -606,7 +598,7 @@ bool TMC5160_UART_Generic::begin(PowerStageParameters &powerParams, MotorParamet
 	// slaveConf.senddelay = 2; // minimum if more than one slave is present.
 	// writeRegister(SLAVECONF, slaveConf.bytes);
 
-	bool result = TMC5160::begin(powerParams, motorParams, stepperDirection);
+	bool result = TMC5160::begin();
 	setCommunicationMode(oldMode);
 	return result;
 }

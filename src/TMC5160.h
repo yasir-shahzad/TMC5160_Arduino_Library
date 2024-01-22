@@ -6,11 +6,7 @@
 #include <Arduino.h>
 #include <SPI.h>
 
-enum MotorDirection
-{
-    NORMAL_MOTOR_DIRECTION = 0x00,
-    INVERSE_MOTOR_DIRECTION = 0x1
-};
+
 enum RampMode
 {
     POSITIONING_MODE,
@@ -39,37 +35,28 @@ class TMC5160
     static constexpr uint8_t IC_VERSION = 0x30;
     static constexpr uint32_t DEFAULT_F_CLK = 12000000; // Typical internal clock frequency in Hz.
 
-    struct PowerStageParameters
-    {
-        uint8_t drvStrength = 2; // MOSFET gate driver current (0 to 3)
-        uint8_t bbmTime = 0;     // "Break Before Make" duration specified in ns (0 to 24)
-        uint8_t bbmClks = 4;     // "Break Before Make" duration specified in clock cycles (0 to 15).
-    };
 
-    struct MotorParameters
-    {
-        uint16_t globalScaler = 32; // global current scaling (32 to 256)
-        uint8_t irun = 16;          // motor run current (0 to 31). For best performance don't set lower than 16
-        uint8_t ihold = 0;          // standstill current (0 to 31). Set 70% of irun or lower.
-        PWMCONF_freewheel_Values freewheeling =
-            FREEWHEEL_NORMAL; // Freewheeling / passive braking of ihold = 0
-        uint8_t pwmOfsInitial = 30;        // initial stealthChop PWM amplitude offset (0-255)
-        uint8_t pwmGradInitial = 0;        // initial stealthChop velocity dependent gradient for PWM amplitude
-    };
+    // struct PowerStageParameters
+    // {
+    //     uint8_t drvStrength = 2; // MOSFET gate driver current (0 to 3)
+    //     uint8_t bbmTime = 0;     // "Break Before Make" duration specified in ns (0 to 24)
+    //     uint8_t bbmClks = 4;     // "Break Before Make" duration specified in clock cycles (0 to 15).
+    // };
+
+    // struct MotorParameters
+    // {
+        // PWMCONF_freewheel_Values freewheeling = FREEWHEEL_NORMAL;
+    //     uint8_t pwmOfsInitial = 30;        // initial stealthChop PWM amplitude offset (0-255)
+    //     uint8_t pwmGradInitial = 0;        // initial stealthChop velocity dependent gradient for PWM amplitude
+    // };
 
 
 
-    virtual bool begin(const PowerStageParameters &powerParams, const MotorParameters &motorParams,
-                       MotorDirection stepperDirection /*=NORMAL_MOTOR_DIRECTION*/);
+    virtual bool begin();
 
     virtual uint32_t readRegister(uint8_t address) = 0;  // addresses are from TMC5160.h
     virtual uint8_t writeRegister(uint8_t address, uint32_t data) = 0;
 
-    /* Ramp mode selection :
-        - Positioning mode : autonomous move to XTARGET using all A, D and V parameters.
-        - Velocity mode : follows VMAX and AMAX. Call setMaxSpeed() AFTER switching to velocity mode.
-        - Hold mode : Keep current velocity until a stop event occurs.
-    */
     void setRampMode(RampMode mode);  //Doxygen
     float getCurrentPosition();  // Return the current internal position (steps)
     float getEncoderPosition();  // Return the current position according to the encoder counter (steps)
@@ -77,6 +64,8 @@ class TMC5160
     float getLatchedEncoderPosition();  // Return the encoder position that was latched on the last encoder event (steps)
     float getTargetPosition();         // Get the target position (steps)
     float getCurrentSpeed();           // Return the current speed (steps / second)
+
+    void setPowerStageParameters();
 
     void setCurrentPosition(float position, bool updateEncoderPos = false);
     // update the encoder counter as well to keep them in sync.
@@ -92,7 +81,6 @@ class TMC5160
 
     void terminateRampEarly();  // Stop the current motion according to the set ramp mode and motion parameters. The max
 
-      // driver must be enabled before use it is disabled by default
     void setHardwareEnablePin(uint8_t hardware_enable_pin);
     void enable();
     void disable();
@@ -179,8 +167,20 @@ class TMC5160
     uint32_t _fclk;
     RampMode _currentRampMode;
     static constexpr uint16_t _uStepCount = 256; // Number of microsteps per step
-    CHOPCONF_Register _chopConf = {
-        0}; // CHOPCONF register (saved here to be restored when disabling / enabling driver)
+
+    GCONF_Register globalConfig;
+    RAMP_STAT_Register rampStatus;
+    CHOPCONF_Register chopConf;
+    GSTAT_Register globalStatus;
+    DRV_STATUS_Register drvStatus;
+    ENCMODE_Register encmode;
+    IHOLD_IRUN_Register iholdrun; // Create a variable of the IHOLD_IRUN_Register type
+    DRV_CONF_Register drvconf;
+    PWMCONF_Register pwmconf;
+    ENC_STATUS_Register encstatus;
+    SHORT_CONF_Register shortConf;
+    COOLCONF_Register coolConf;
+    SW_MODE_Register switchMode;
 
     // Referring to Topic 12.1 on Page 81 of Datasheet Version 1.17 for Real-world Unit Conversions
     //  v[Hz] = v[5160A] * ( f CLK [Hz]/2 / 2^23 )
@@ -208,18 +208,19 @@ class TMC5160
     }
 };
 
+
+
+
 /* SPI interface : 
  * the TMC5160 SWSEL input has to be low (default state).
  */
 class TMC5160_SPI : public TMC5160
 {
   public:
-    TMC5160_SPI(uint8_t chipSelectPin, // pin to use for the SPI bus SS line
-                uint32_t fclk = DEFAULT_F_CLK,
-                const SPISettings &spiSettings = SPISettings(1000000, MSBFIRST, SPI_MODE3), // spi bus settings to use
-                SPIClass &spi = SPI);                                                       // spi class to use
+    TMC5160_SPI(uint8_t chipSelectPin, uint32_t fclk = DEFAULT_F_CLK,
+                const SPISettings &spiSettings = SPISettings(1000000, MSBFIRST, SPI_MODE3), SPIClass &spi = SPI);
 
-    uint32_t readRegister(uint8_t address); // addresses are from TMC5160.h
+    uint32_t readRegister(uint8_t address);
     uint8_t writeRegister(uint8_t address, uint32_t data);
 
   private:
@@ -230,6 +231,13 @@ class TMC5160_SPI : public TMC5160
     void _beginTransaction();
     void _endTransaction();
 };
+
+
+
+
+
+
+
 
 /* Generic UART interface */
 class TMC5160_UART_Generic : public TMC5160
@@ -257,8 +265,7 @@ class TMC5160_UART_Generic : public TMC5160
     TMC5160_UART_Generic(uint8_t slaveAddress = 0, // TMC5160 slave address (default 0 if NAI is low, 1 if NAI is high)
                          uint32_t fclk = DEFAULT_F_CLK);
 
-    virtual bool begin(PowerStageParameters &powerParams, MotorParameters &motorParams,
-                       MotorDirection stepperDirection /*=NORMAL_MOTOR_DIRECTION*/);
+    virtual bool begin();
 
     uint32_t readRegister(uint8_t address, ReadStatus *status);
     uint32_t readRegister(uint8_t address)
