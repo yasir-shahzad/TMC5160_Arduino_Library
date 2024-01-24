@@ -40,38 +40,9 @@ void setup() {
 }
 
 void loop() { 
-  // Serial.println("RPM120");
-  // motor.moveAtVelocity(120*multiplyFactor); 
-  // delay(delayTime);
+
   Serial.println("RPM100");
   motor.moveAtVelocity(100); 
-  // delay(delayTime);
-  // Serial.println("RPM80");
-  // motor.moveAtVelocity(80*multiplyFactor); 
-  while(1){
-
-      motor.getDriverStatus();
-      // Serial.println(currentSpeed);
-      delay(500);
-      //  motor.moveAtVelocity(0*multiplyFactor);
-  }
-  delay(delayTime);
-  Serial.println("RPM50");
-  motor.moveAtVelocity(50*multiplyFactor); 
-  delay(delayTime);
-  Serial.println("RPM30");
-  motor.moveAtVelocity(30*multiplyFactor); 
-  delay(delayTime);
-    // motor.moveAtVelocity(100*multiplyFactor); 
-  // /delay(delayTime);
-  // int vmax = 120;
-  // for(int i = 0; i<= vmax; i++)
-  // {
-  // motor.moveAtVelocity(i*multiplyFactor); 
-  // delay(200);
-  // Serial.println(i);
-  // }
-  // delay(delayTime);
 
   if(motor.isResetOccurred()) {
       motor.begin();

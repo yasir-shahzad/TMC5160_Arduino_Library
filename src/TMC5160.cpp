@@ -413,33 +413,33 @@ void TMC5160::setEncoderLatching(bool enabled)
 
     writeRegister(ADDRESS_ENCMODE, encmode.bytes);
 }
-
+//Referring to Topic 9 on Page 74 of Datasheet Version 1.18
 void TMC5160::setCurrentMilliamps(uint16_t Irms) {
     const int32_t const_val = 11585;  //256 * Sqroot(2) * 32
-    const int32_t Vfs = 325;
+    const int32_t Vfs = 325;  //mv
     const float Rsense = 0.075f;
-    int32_t cs = 31;  // Initial CS value
+    int32_t CS = 31;  // Initial CS value
 
     // Calculate GlobalScaler and CS
-    uint32_t globalScaler = 0;
+    uint32_t GlobalScaler = 0;
     bool found = false;
 
-    for (; cs >= 0; cs--) {
-        globalScaler = ((Irms * const_val * Rsense) / ((cs + 1) * Vfs))-1;  //page 74 topic 9
-        if (globalScaler == 0 || (globalScaler >= 128 && globalScaler <= 255)) {
+    for (; CS >= 0; CS--) {
+        GlobalScaler = ((Irms * const_val * Rsense) / ((CS + 1) * Vfs)) - 1;
+        if (GlobalScaler == 0 || (GlobalScaler >= 128 && GlobalScaler <= 255)) {
             found = true;
             break;
         }
     }
 
     if (found) {
-        iholdrun.irun = cs;
+        iholdrun.irun = CS;
         iholdrun.ihold = 16;
         iholdrun.iholddelay = 10;
         // Print the results
-        // Serial.println("GlobalScaler: " + String(globalScaler));
-        // Serial.println("cs: " + String(cs));
-        writeRegister(ADDRESS_GLOBAL_SCALER, constrain(globalScaler, 32, 256));
+        // Serial.println("GlobalScaler: " + String(GlobalScaler));
+        // Serial.println("CS: " + String(CS));
+        writeRegister(ADDRESS_GLOBAL_SCALER, constrain(GlobalScaler, 32, 256));
         writeRegister(ADDRESS_IHOLD_IRUN, iholdrun.bytes);
     } else {
         // TODO(yasir): just for testing have to improve it with return values or some error handling
